@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.FileMapper">
+
+    <select id="getFileInfoByMD5" parameterType="String" resultType="com.ncwu.titapan.pojo.CustomFile">
+        select * from file where md5_val=#{md5_val}
+    </select>
+    <select id="getFileInfoByFid" parameterType="int" resultType="com.ncwu.titapan.pojo.CustomFile">
+        select * from file where fid=#{fid}
+    </select>
+
+<!--  插入新文件  -->
+    <insert id="insertFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
+        insert into file(md5_val, storage_path, f_name, upload_date, f_size)
+        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size})
+    </insert>
+
+
+</mapper>

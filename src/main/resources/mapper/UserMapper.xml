@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.UserMapper">
+
+    <select id="getUserInfoByUserName" parameterType="String" resultType="com.ncwu.titapan.pojo.User">
+        select * from user where u_name=#{u_name}
+    </select>
+    <select id="getUserInfoByUserId" parameterType="int" resultType="com.ncwu.titapan.pojo.User">
+        select * from user where uid=#{uid}
+    </select>
+
+    <select id="getUserPasswordByUserName" parameterType="java.lang.String" resultType="java.lang.String">
+        select u_password from user where u_name=#{u_name}
+    </select>
+    <select id="getUserPasswordByUserId" parameterType="int" resultType="java.lang.String">
+        select u_password from user where uid=#{uid}
+    </select>
+
+    <select id="getUserStateByUserName" parameterType="java.lang.String" resultType="int">
+        select u_state from user where u_name=#{u_name}
+    </select>
+    <select id="getUserStateByUserId" parameterType="int" resultType="int">
+        select u_state from user where uid=#{uid}
+    </select>
+
+    <insert id="insertNewUser" parameterType="com.ncwu.titapan.pojo.User">
+        insert into user(u_name, u_password) values(#{u_name}, #{u_password})
+    </insert>
+
+</mapper>

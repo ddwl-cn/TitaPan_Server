@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.UserFileListMapper">
+
+   <insert id="insertFile" parameterType="com.ncwu.titapan.pojo.UserFileList">
+       insert into user_file_list(uid, fid, upload_date, storage_path, f_name, f_size, isFolder)
+       values (#{uid}, #{fid}, #{upload_date}, #{storage_path}, #{f_name}, #{f_size}, #{isFolder})
+   </insert>
+
+    <select id="getUserFileInfo" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid} and f_name=#{f_name} and storage_path=#{storage_path}
+    </select>
+
+    <select id="getUserFileList" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid} and storage_path=#{storage_path}
+    </select>
+
+    <select id="isPathExist" resultType="int">
+        select count(storage_path) from user_file_list
+        where uid=#{uid} and
+        (storage_path=#{storage_path}
+#              必须使用concat进行字符串拼接
+        or concat(storage_path, f_name, '\/')=#{storage_path})
+    </select>
+
+    <update id="updateFileName">
+        update user_file_list set f_name=#{newName}, upload_date=#{update_date} where uid=#{uid} and f_name=#{oldName} and storage_path=#{storage_path}
+    </update>
+
+    <update id="updateFolderName">
+        update user_file_list set f_name=#{newName}, upload_date=#{update_date} where uid=#{uid} and f_name=#{oldName} and storage_path=#{storage_path};
+#         旧的路径在新的路径上的下表
+        update user_file_list set storage_path=insert(storage_path, 1, length(#{storage_path} + #{oldName} + '\/'), #{storage_path} + #{newName} + '\/')
+        where uid=#{uid} and storage_path like (#{storage_path} + #{oldName} + '\/%')
+    </update>
+
+    <delete id="deleteFile">
+        delete from user_file_list where uid=#{uid} and f_name=#{fileName} and storage_path=#{storage_path}
+    </delete>
+
+    <delete id="deleteFolder">
+        delete from user_file_list where uid=#{uid}
+                                     and ((f_name=#{fileName} and storage_path=#{storage_path})
+                                              or(storage_path like concat(#{storage_path}, #{fileName}, '/', '%')));
+    </delete>
+
+    <select id="getFileUnderFolder" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid}
+        and ((f_name=#{f_name} and storage_path=#{storage_path})
+                 or (storage_path like concat(#{storage_path}, #{f_name}, '/', '%')))
+    </select>
+
+    <select id="getUserFolders" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid} and storage_path=#{storage_path} and isFolder=1
+    </select>
+</mapper>

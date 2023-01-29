@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.ShareLinkMapper">
+
+
+    <!--  插入新链接  -->
+    <insert id="insertNewShareLink" parameterType="com.ncwu.titapan.pojo.ShareLink">
+        insert into share_link(uid, fid, share_uuid, share_code, share_date, expire_date, valid, isFolder, storage_path, f_name)
+        values(#{uid}, #{fid}, #{share_uuid}, #{share_code}, #{share_date}, #{expire_date}, #{valid}, #{isFolder}, #{storage_path}, #{f_name})
+    </insert>
+
+    <select id="getShareLinkByUUID" parameterType="String" resultType="com.ncwu.titapan.pojo.ShareLink">
+        select * from share_link where share_uuid=#{link}
+    </select>
+
+    <select id="getShareList" parameterType="int" resultType="com.ncwu.titapan.pojo.ShareLink">
+        select * from share_link where uid=#{uid}
+    </select>
+
+    <delete id="deleteShareLink" parameterType="int">
+        delete from share_link where share_id=#{share_id}
+    </delete>
+
+    <select id="getShareLinkById" parameterType="int" resultType="com.ncwu.titapan.pojo.ShareLink">
+        select * from share_link where share_id=#{share_id}
+    </select>
+
+    <update id="updateFileName">
+        update share_link set f_name=#{new_f_name} where uid=#{uid} and f_name=#{old_f_name} and storage_path=#{storage_path}
+    </update>
+</mapper>

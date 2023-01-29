@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.FileChunkMapper">
+
+    <select id="getFileChunkByMD5" parameterType="String" resultType="com.ncwu.titapan.pojo.FileChunk">
+        select * from file_chunk where md5_val=#{md5_val}
+    </select>
+
+    <insert id="insertFileChunk" parameterType="com.ncwu.titapan.pojo.FileChunk">
+        insert into file_chunk(id, md5_val, chunk_size, number, original_file_name, total, storage_path, std_chunk_size, suffix, upload_date)
+        values (#{id},#{md5_val}, #{chunk_size}, #{number}, #{original_file_name}, #{total}, #{storage_path}, #{std_chunk_size}, #{suffix}, #{upload_date})
+    </insert>
+
+    <select id="getFileChunkListById" parameterType="String" resultType="com.ncwu.titapan.pojo.FileChunk">
+        select * from file_chunk where id=#{id} order by number
+    </select>
+
+    <delete id="deleteFileChunkById" parameterType="String">
+        delete from file_chunk where id=#{id}
+    </delete>
+
+    <select id="getFileChunkNumber" parameterType="String" resultType="int">
+        select count(id) from file_chunk where id=#{id}
+    </select>
+
+<!--  查询上传时间是否已经超过一定时间(12小时)  -->
+    <select id="getRubbishChunks" parameterType="String" resultType="com.ncwu.titapan.pojo.FileChunk">
+        select * from file_chunk
+        where TIMESTAMPDIFF(MINUTE,upload_date, #{nowDate}) > 60*12;
+    </select>
+
+    <delete id="deleteFileChunkByMD5" parameterType="String">
+        delete from file_chunk where md5_val=#{md5_val}
+    </delete>
+
+</mapper>
