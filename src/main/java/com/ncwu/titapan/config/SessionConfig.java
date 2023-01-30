@@ -24,6 +24,7 @@ public class SessionConfig {
     DefaultCookieSerializerCustomizer cookieSerializerCustomizer() {
         return cookieSerializer -> {
             cookieSerializer.setSameSite("None");
+            cookieSerializer.setUseHttpOnlyCookie(true);
             cookieSerializer.setUseSecureCookie(true); // 此项必须，否则set-cookie会被chrome浏览器阻拦
         };
     }

@@ -9,7 +9,7 @@ import javax.print.attribute.Attribute;
  * @date 2023/1/6 9:29
  */
 public class Constant {
-    // 约定：路径后都需要以 '\'  结尾
+    // 约定：路径后都需要以 '/'  结尾
 
     // 系统文件存储根路径
     public static final String sys_storage_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/";
