@@ -16,26 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-/**
- * @author liangrui
- * @date 2020年1月19日 下午3:18:31
- * @version 1.0.0
- * @description 文件的分割与合并
- */
+
 public class SplitAndMergeFile {
 
-    /**
-     *
-     * @Description:   文件的分割
-     * @param:         @param splitFile 需要分割的文件
-     * @param:         @param splitSmallFilesDir 分割后的小文件位置
-     * @param:         @param splitSmallFileSize 每个切割的小文件大小
-     * @param:         @return
-     * @return:        List<String> 所有分割的小文件
-     * @author:        liangrui
-     * @date:          2020年1月19日 下午4:01:11
-     * @throws
-     */
+
     public List<String> split(File splitFile,String splitSmallFilesDir,long splitSmallFileSize) {
 
         //被分割文件总大小
@@ -106,17 +90,7 @@ public class SplitAndMergeFile {
         return splitSmallFileList;
     }
 
-    /**
-     *
-     * @Description:   合并文件
-     * @param:         @param splitSmallFileList 小文件列表
-     * @param:         @param mergeFileDir 合并的文件存储的文件夹
-     * @param:         @param mergeFileName 合并的文件新名
-     * @return:        String 合并的文件路径
-     * @author:        liangrui
-     * @date:          2020年1月19日 下午5:29:18
-     * @throws
-     */
+
     public String merge(List<String> splitSmallFileList,String mergeFileDir,String mergeFileName) {
 
         try {

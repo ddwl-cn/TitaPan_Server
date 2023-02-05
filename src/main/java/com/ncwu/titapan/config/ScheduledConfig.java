@@ -60,6 +60,7 @@ public class ScheduledConfig {
     private boolean deleteFiles(File file, int level) {
         //判断文件不为null或文件目录存在
         if (file == null || !file.exists()) {
+            logger.info("文件未找到！");
             return false;
         }
         //获取目录下子文件
@@ -77,6 +78,9 @@ public class ScheduledConfig {
         }
         //文件夹删除
         if(level != 0) file.delete();
+        else{
+            logger.info("垃圾文件清理完毕！");
+        }
         return true;
     }
 }
