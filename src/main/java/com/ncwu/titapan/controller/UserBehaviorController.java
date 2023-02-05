@@ -152,7 +152,7 @@ public class UserBehaviorController {
                                                    String savePath){
         User user = (User)request.getSession().getAttribute(Constant.user);
 
-        if(savePath == null || savePath.isBlank() || userFileListMapper.isPathExist(user.getUid(), savePath) == 0)
+        if(savePath == null || savePath.isBlank() || (userFileListMapper.isPathExist(user.getUid(), savePath) == 0 && !"/".equals(savePath)))
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
         UserFileList[] userFileLists = userFileListMapper.getUserFolders(user.getUid(), savePath);

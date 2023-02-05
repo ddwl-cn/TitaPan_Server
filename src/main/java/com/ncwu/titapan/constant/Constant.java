@@ -13,8 +13,11 @@ public class Constant {
 
     // 系统文件存储根路径
     public static final String sys_storage_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/";
-    // 系统预览文件存储路径
+
+    // 系统预览文件存储路径(TODO: 部署后需要进行更改)
     public static final String sys_preview_path = "D:/mySource/KK_Preview/file-online-preview-v4.1.0/server/src/main/file/";
+    // 文件广场文件存储路径
+    public static final String sys_public_file_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/public/";
     // 压缩文件临时路径
     public static final String zip_storage_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/zipTemp/";
     // 用户默认虚拟根路径

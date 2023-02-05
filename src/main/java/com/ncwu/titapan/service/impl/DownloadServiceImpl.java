@@ -17,6 +17,16 @@ import java.net.URLEncoder;
 @Service
 public class DownloadServiceImpl implements DownloadService {
 
+    /**
+     * TODO 文件下载 写入OutputStream
+     *
+     * @param response response
+     * @param res_f_name 设置下载文件名
+     * @param f_name 服务端存储的文件的名称
+     * @return boolean
+     * @Author ddwl.
+     * @Date 2023/2/5 11:10
+    **/
     @Override
     public boolean downloadSingle(HttpServletResponse response, String res_f_name, String f_name) {
 
@@ -36,7 +46,7 @@ public class DownloadServiceImpl implements DownloadService {
             byte[] buffer = new byte[1024];
             FileInputStream fileInputStream = null;
             BufferedInputStream bufferedInputStream = null;
-            // 读取byte数据到 outputstream 中
+            // 读取byte数据到 OutputStream 中
             try{
                 fileInputStream = new FileInputStream(file);
                 bufferedInputStream = new BufferedInputStream(fileInputStream);
@@ -53,19 +63,11 @@ public class DownloadServiceImpl implements DownloadService {
                 return false;
             }
             finally {
-                if (bufferedInputStream != null) {
-                    try {
-                        bufferedInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (fileInputStream != null) {
-                    try {
-                        fileInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    if (bufferedInputStream != null) bufferedInputStream.close();
+                    if (fileInputStream != null) fileInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
             return true;

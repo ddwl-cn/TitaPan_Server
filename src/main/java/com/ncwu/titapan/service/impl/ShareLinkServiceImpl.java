@@ -37,7 +37,7 @@ public class ShareLinkServiceImpl implements ShareLinkService {
      @Override
      public int extract(int uid,String userPath, String share_link, String share_code){
          ShareLink shareLink = shareLinkMapper.getShareLinkByUUID(share_link);
-         if(shareLink == null) return 0; // 链接已被取消
+         if(shareLink == null) return 0; // 链接已被取消或不存在
          UserFileList userFileList = userFileListMapper.getUserFileInfo(shareLink.getUid(), shareLink.getF_name(), shareLink.getStorage_path());
 
          UserFileList user_file = userFileListMapper.getUserFileInfo(uid, shareLink.getF_name(), userPath);
