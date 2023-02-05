@@ -15,7 +15,7 @@ spring:
 
 # 服务端口
 server:
-  port: 8080
+  port: 8999
 
 # 配置mybatis
 mybatis:

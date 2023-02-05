@@ -1,8 +1,10 @@
 package com.ncwu.titapan.config;
 
+import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.mapper.FileChunkMapper;
 import com.ncwu.titapan.pojo.FileChunk;
 import com.ncwu.titapan.utils.DateUtil;
+import org.apache.tomcat.util.bcel.Const;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,5 +49,34 @@ public class ScheduledConfig {
             }
         }
         logger.info("垃圾文件清理完毕！");
+    }
+
+    @Scheduled(cron = "0 0 0/1 * * ?")
+    public void deletePreviewFiles(){
+        File file = new File(Constant.sys_preview_path);
+        deleteFiles(file, 0);
+    }
+
+    private boolean deleteFiles(File file, int level) {
+        //判断文件不为null或文件目录存在
+        if (file == null || !file.exists()) {
+            return false;
+        }
+        //获取目录下子文件
+        File[] files = file.listFiles();
+        //遍历该目录下的文件对象
+        for (File f : files) {
+            //判断子目录是否存在子目录,如果是文件则删除
+            if (f.isDirectory()) {
+                //递归删除目录下的文件
+                deleteFiles(f, level + 1);
+            } else {
+                //文件删除
+                f.delete();
+            }
+        }
+        //文件夹删除
+        if(level != 0) file.delete();
+        return true;
     }
 }

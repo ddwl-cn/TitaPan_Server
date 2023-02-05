@@ -5,6 +5,7 @@ import lombok.Builder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
+import ws.schild.jave.*;
 
 import java.io.*;
 import java.security.MessageDigest;
@@ -338,6 +339,37 @@ public class FileUtil {
         }
     }
 
+    public static void convertMP4EncodeType(File source, File target){
+        MultimediaObject multimediaObject=new MultimediaObject(source);
+        AudioAttributes audio = new AudioAttributes();
+        audio.setCodec("libmp3lame");//音频编码格式
+        //audio.setBitRate(new Integer(56000));//设置比特率，比特率越大，转出来的音频越大（默认是128000，最好默认就行，有特殊要求再设置）
+        audio.setChannels(1);
+        audio.setSamplingRate(22050);
+        VideoAttributes video = new VideoAttributes();
+        video.setCodec("libx264");//视屏编码格式
+        //video.setBitRate(new Integer(56000));//设置比特率，比特率越大，转出来的视频越大（默认是128000,最好默认就行，有特殊要求再设置）
+        try {
+            video.setFrameRate((int) multimediaObject.getInfo().getVideo().getFrameRate());//数值设置小了，视屏会卡顿
+        } catch (EncoderException e) {
+            e.printStackTrace();
+        }
+        EncodingAttributes attrs = new EncodingAttributes();
+        attrs.setFormat("mp4");
+        attrs.setAudioAttributes(audio);
+        attrs.setVideoAttributes(video);
+        Encoder encoder = new Encoder();
+
+        try {
+            encoder.encode(multimediaObject,target,attrs);
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }catch (InputFormatException e){
+            e.printStackTrace();
+        }catch (EncoderException e){
+            e.printStackTrace();
+        }
+    }
     public static void main(String []args){
 
     }
