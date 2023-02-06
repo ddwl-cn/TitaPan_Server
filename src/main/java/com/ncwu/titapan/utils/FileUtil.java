@@ -4,14 +4,13 @@ import com.ncwu.titapan.constant.Constant;
 import lombok.Builder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 import ws.schild.jave.*;
 
 import java.io.*;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -209,6 +208,12 @@ public class FileUtil {
     public static String getFileSuffix(String s){
         int index = s.lastIndexOf('.');
         if(index == -1) return "";
+        return s.substring(index);
+    }
+
+    public static String getFileName(String s){
+        int index = s.lastIndexOf('/');
+        if(index == -1) return "";
         return s.substring(index + 1);
     }
 
@@ -217,7 +222,6 @@ public class FileUtil {
      * MultipartFile 转 File
      *
      * @param file
-     * @throws Exception
      */
     public static File multipartFileToFile(MultipartFile file) throws Exception {
 
@@ -227,7 +231,7 @@ public class FileUtil {
         } else {
             InputStream ins = null;
             ins = file.getInputStream();
-            toFile = new File(file.getOriginalFilename());
+            toFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
             inputStreamToFile(ins, toFile);
             ins.close();
         }
@@ -339,6 +343,14 @@ public class FileUtil {
         }
     }
 
+    /**
+     * TODO 解决mo4编码格式导致的在线播放只有声音没有音频的问题 (修改mp4编码格式为h264)
+     *
+     * @param source source
+     * @param target target
+     * @Author ddwl.
+     * @Date 2023/2/5 15:51
+    **/
     public static void convertMP4EncodeType(File source, File target){
         MultimediaObject multimediaObject=new MultimediaObject(source);
         AudioAttributes audio = new AudioAttributes();
@@ -350,7 +362,7 @@ public class FileUtil {
         video.setCodec("libx264");//视屏编码格式
         //video.setBitRate(new Integer(56000));//设置比特率，比特率越大，转出来的视频越大（默认是128000,最好默认就行，有特殊要求再设置）
         try {
-            video.setFrameRate((int) multimediaObject.getInfo().getVideo().getFrameRate());//数值设置小了，视屏会卡顿
+            video.setFrameRate((int) multimediaObject.getInfo().getVideo().getFrameRate());//设置视频帧率 设置为与原视频一样的帧率
         } catch (EncoderException e) {
             e.printStackTrace();
         }
@@ -362,16 +374,26 @@ public class FileUtil {
 
         try {
             encoder.encode(multimediaObject,target,attrs);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-        }catch (InputFormatException e){
-            e.printStackTrace();
-        }catch (EncoderException e){
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public static void main(String []args){
 
+    public static boolean isPic(String f_suffix){
+        String []suffix = {".jpg", ".jpeg", ".png", ".bmp"};
+        return Arrays.asList(suffix).contains(f_suffix.toLowerCase());
+    }
+    public static boolean isVedio(String f_suffix){
+        // 视频格式暂时只支持mp4
+        String []suffix = {".mp4"};
+        return Arrays.asList(suffix).contains(f_suffix.toLowerCase());
+    }
+    public static void main(String []args){
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        System.out.println(MD5(new File("D:\\ys\\ff7\\3DMGAME_Final_Fantasy_VII_Remake.CHS.Green\\Final Fantasy VII Remake Intergrade\\End\\Content\\Paks\\pakchunk0_s1-WindowsNoEditor.pak")));
+        stopWatch.stop();
+        System.out.println("计算耗时：" + stopWatch.getTotalTimeSeconds());
     }
 
 }

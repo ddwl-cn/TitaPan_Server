@@ -25,6 +25,32 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- 引入javacv-platform依赖,视频处理 -->
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>opencv-platform</artifactId>
+            <version>3.4.1-1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>opencv-platform</artifactId>
+            <version>3.4.1-1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>ffmpeg-platform</artifactId>
+            <version>3.4.2-1.4.1</version>
+        </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
@@ -63,6 +89,39 @@
             <artifactId>jave-native-win64</artifactId>
             <version>2.4.5</version>
         </dependency>
+<!--   图片压缩所需工具     -->
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.8</version>
+        </dependency>
+<!--   视频处理相关-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco.javacpp-presets</groupId>-->
+<!--            <artifactId>opencv-platform</artifactId>-->
+<!--            <version>3.4.1-1.4.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco</groupId>-->
+<!--            <artifactId>javacpp</artifactId>-->
+<!--            <version>1.4.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco</groupId>-->
+<!--            <artifactId>javacv</artifactId>-->
+<!--            <version>1.4.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco.javacpp-presets</groupId>-->
+<!--            <artifactId>opencv-platform</artifactId>-->
+<!--            <version>3.4.1-1.4.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.bytedeco.javacpp-presets</groupId>-->
+<!--            <artifactId>ffmpeg-platform</artifactId>-->
+<!--            <version>3.4.2-1.4.1</version>-->
+<!--        </dependency>-->
+
 
         <!-- https://mvnrepository.com/artifact/org.apache.directory.studio/org.apache.commons.codec -->
         <dependency>

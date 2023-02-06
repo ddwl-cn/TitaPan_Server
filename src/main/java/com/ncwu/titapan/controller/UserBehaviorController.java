@@ -12,14 +12,18 @@ import com.ncwu.titapan.pojo.UserFileList;
 import com.ncwu.titapan.service.UserBehaviorService;
 import com.ncwu.titapan.utils.DateUtil;
 import com.ncwu.titapan.utils.FileUtil;
+import com.ncwu.titapan.utils.PreviewImageUtil;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.StopWatch;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 /**
@@ -109,6 +113,10 @@ public class UserBehaviorController {
         if (userFileList == null) return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
         userFileListMapper.deleteFile(user.getUid(), fileName, userPath);
+        // 同时删除本地预览图片
+        String path = Constant.preview_image_path + FileUtil.getFileName(userFileList.getPreview_url());
+        File file = new File(path);
+        file.delete();
 
         return new ResultMessage<>(Message.SUCCESS, Message.deleteFileSuccess, null);
     }
@@ -183,6 +191,7 @@ public class UserBehaviorController {
     **/
     @RequestMapping("/preview")
     public ResultMessage<String> preview(HttpServletRequest request,
+                                         HttpServletResponse response,
                                          String f_name){
         User user = (User)request.getSession().getAttribute(Constant.user);
         String userPath = (String)request.getSession().getAttribute(Constant.userPath);
@@ -198,15 +207,20 @@ public class UserBehaviorController {
         if(customFile == null)
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
         // Files类实现文件复制
-
+        String randomName = null;
         try {
-
+            // 源文件 目标文件 预览文件长度设定为小于64 定期删除
+            randomName = PreviewImageUtil.createRandomName(32) + FileUtil.getFileSuffix(customFile.getF_name());
             File src_file = new File(Constant.sys_storage_path + customFile.getF_name());
-            File dest_file = new File(Constant.sys_preview_path + customFile.getF_name());
-
+            File dest_file = new File(Constant.sys_preview_path + randomName);
             if(!dest_file.exists()) {
-                if(f_name.endsWith(".mp4")) FileUtil.convertMP4EncodeType(src_file, dest_file);
-                else Files.copy(src_file.toPath(), dest_file.toPath());
+                // 前端video标签播放的视频要使用h264编码 否则只有声音没有画面
+                // TODO： (1)、转换视频编码速度太慢 (2)、暂时只支持mp4视频文件
+                // 返回数据流依然没有画面 看来必须得转码？？
+                if (f_name.endsWith(".mp4"))
+                    FileUtil.convertMP4EncodeType(src_file, dest_file);
+                else
+                    Files.copy(src_file.toPath(), dest_file.toPath());
             }
 
         } catch (IOException e) {
@@ -214,7 +228,30 @@ public class UserBehaviorController {
             return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
         }
 
-        return new ResultMessage<>(Message.SUCCESS, "", customFile.getF_name());
+        return new ResultMessage<>(Message.SUCCESS, "", randomName);
+    }
+
+
+    // 没效果 还是没有画面
+    @RequestMapping("/playVideo/{videoName}")
+    public ResultMessage<String> playVideo(HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         @PathVariable("videoName") String videoName){
+        //获取视频文件流
+        try (OutputStream outputStream = response.getOutputStream(); FileInputStream fileInputStream = new FileInputStream(new File(Constant.sys_preview_path + videoName))) {
+            byte[] cache = new byte[1024];
+            response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
+            response.setHeader(HttpHeaders.CONTENT_LENGTH, fileInputStream.available() + "");
+            int flag;
+            while ((flag = fileInputStream.read(cache)) != -1) {
+                outputStream.write(cache, 0, flag);
+            }
+            outputStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException("文件传输错误");
+        }
+
+        return new ResultMessage<>(Message.SUCCESS, "", null);
     }
 
 

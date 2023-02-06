@@ -48,7 +48,7 @@ public class ScheduledConfig {
                 logger.error("文件" + fileChunk.getStorage_path() + fileChunk.getTempName() + "删除异常！");
             }
         }
-        logger.info("垃圾文件清理完毕！");
+        logger.info("垃圾文件清理完毕!");
     }
 
     @Scheduled(cron = "0 0 0/1 * * ?")
@@ -60,7 +60,7 @@ public class ScheduledConfig {
     private boolean deleteFiles(File file, int level) {
         //判断文件不为null或文件目录存在
         if (file == null || !file.exists()) {
-            logger.info("文件未找到！");
+            logger.info("文件未找到!");
             return false;
         }
         //获取目录下子文件
@@ -71,16 +71,20 @@ public class ScheduledConfig {
             if (f.isDirectory()) {
                 //递归删除目录下的文件
                 deleteFiles(f, level + 1);
-            } else {
+            } else if(canDelete(f.getName())){
                 //文件删除
                 f.delete();
             }
         }
         //文件夹删除
+
         if(level != 0) file.delete();
-        else{
-            logger.info("垃圾文件清理完毕！");
-        }
+        else logger.info("垃圾文件清理完毕!");
+
         return true;
+    }
+    private static boolean canDelete(String f_name){
+
+        return f_name.length() <= 64;
     }
 }

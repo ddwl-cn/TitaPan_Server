@@ -20,6 +20,11 @@ public class Constant {
     public static final String sys_public_file_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/public/";
     // 压缩文件临时路径
     public static final String zip_storage_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/zipTemp/";
+    // 预览图临时路径
+
+    public static final String preview_image_path = "D:\\mySource\\KK_Preview\\file-online-preview-v4.1.0\\server\\src\\main\\file\\";
+    // 预览图片地址
+    public static final String host_url = "http://127.0.0.1:8012/";
     // 用户默认虚拟根路径
     public static final String user_root_path = "/";
 
@@ -51,9 +56,6 @@ public class Constant {
             "/**/*.css",                 //css静态资源
             "/**/*.jpg",                 //jpg图片资源
             "/**/*.png",                 //png图片资源
-            "/**/*.txt",
-            "/**/*.mp4",
-            "/**/*.c",
             "/login",                    //登录请求
             "/toLogin",                  //登录页面
             "/toRegistry",               //注册页面

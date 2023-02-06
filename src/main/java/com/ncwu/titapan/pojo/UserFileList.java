@@ -23,4 +23,5 @@ public class UserFileList {
     String f_name;
     long f_size;
     boolean isFolder;
+    String preview_url;
 }

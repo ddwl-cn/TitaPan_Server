@@ -6,8 +6,8 @@
 <mapper namespace="com.ncwu.titapan.mapper.UserFileListMapper">
 
    <insert id="insertFile" parameterType="com.ncwu.titapan.pojo.UserFileList">
-       insert into user_file_list(uid, fid, upload_date, storage_path, f_name, f_size, isFolder)
-       values (#{uid}, #{fid}, #{upload_date}, #{storage_path}, #{f_name}, #{f_size}, #{isFolder})
+       insert into user_file_list(uid, fid, upload_date, storage_path, f_name, f_size, isFolder, preview_url)
+       values (#{uid}, #{fid}, #{upload_date}, #{storage_path}, #{f_name}, #{f_size}, #{isFolder}, #{preview_url})
    </insert>
 
     <select id="getUserFileInfo" resultType="com.ncwu.titapan.pojo.UserFileList">

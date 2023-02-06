@@ -12,8 +12,6 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/tita_pan?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-
-# 服务端口
 server:
   port: 8999
 
