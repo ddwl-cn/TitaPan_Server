@@ -107,9 +107,13 @@ public class UploadServiceImpl implements UploadService {
             ufList.setF_name(fileChunk.getOriginal_file_name());
             ufList.setF_size(cFile.getF_size());
             // 保存文件到统一的位置
-            fileChunk.getMFile().transferTo(new File(Constant.sys_storage_path
-                    + cFile.getF_name()));
+            // String randomName = PreviewImageUtil.createRandomName(64) + fileChunk.getSuffix();
+            File file = new File(Constant.sys_storage_path + cFile.getF_name());
+            fileChunk.getMFile().transferTo(file);
 
+            // 加密并存储 TODO: 得先存储然后再加密 不然加密后无法获取缩略图 暂且搁置
+            // FileUtil.encodeFile(file, new File());
+            // file.delete();
 
             if(FileUtil.isPic(fileChunk.getSuffix())) {
                 // 生成图片预览地址

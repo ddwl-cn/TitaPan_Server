@@ -1,9 +1,12 @@
 package com.ncwu.titapan.utils;
 
+import com.ncwu.titapan.config.ScheduledConfig;
 import com.ncwu.titapan.constant.Constant;
 import lombok.Builder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 import ws.schild.jave.*;
@@ -21,6 +24,7 @@ import java.util.zip.ZipOutputStream;
  * @date 2023/1/5 21:18
  */
 public class FileUtil {
+    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
     /**
      *MD5计算工具
      */
@@ -211,7 +215,7 @@ public class FileUtil {
         return s.substring(index);
     }
 
-    public static String getFileName(String s){
+    public static String getFileNameFromPath(String s){
         int index = s.lastIndexOf('/');
         if(index == -1) return "";
         return s.substring(index + 1);
@@ -310,13 +314,12 @@ public class FileUtil {
                 vector.add(new BufferedInputStream(new FileInputStream(chunkFileList.get(i))));
             }
             //SequenceInputStream，实现批量输入流的按序列读
-            SequenceInputStream sequenceInputStream=new SequenceInputStream(vector.elements());
+            SequenceInputStream sequenceInputStream = new SequenceInputStream(vector.elements());
             //10字节的缓存
             byte[] cache = new byte[1024*10];
             int len = -1;
             while ((len=sequenceInputStream.read(cache))!=-1) {
-                //分段写
-                outputStream.write(cache,0,len);
+                outputStream.write(cache, 0, len);
             }
             //强制将所有缓冲的输出字节被写入磁盘，更可靠
             outputStream.flush();
@@ -388,6 +391,27 @@ public class FileUtil {
         String []suffix = {".mp4"};
         return Arrays.asList(suffix).contains(f_suffix.toLowerCase());
     }
+
+    // 文件加密后存储
+    public static void encodeFile(File srcFile, File desFile) {
+        int fileData;
+        if (!srcFile.exists()) {
+            logger.error("创建目标文件失败");
+            return;
+        }
+        try (InputStream inputStream = new FileInputStream(srcFile);
+             OutputStream outputStream = new FileOutputStream(desFile)){
+            while ((fileData = inputStream.read()) > -1) {
+                // 利用异或两次数据不发生变化的特点
+                outputStream.write(fileData ^ Constant.CRYPTO_SECRET_KEY);
+            }
+            outputStream.flush();
+        }catch (Exception e){
+            logger.error("加密上传文件失败",e);
+        }
+    }
+
+
     public static void main(String []args){
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();

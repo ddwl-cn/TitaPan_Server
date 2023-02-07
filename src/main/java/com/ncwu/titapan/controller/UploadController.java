@@ -89,6 +89,8 @@ public class UploadController {
         User user = (User) request.getSession().getAttribute(Constant.user);
         // 用户当前路径
         String userPath = (String) request.getSession().getAttribute(Constant.userPath);
+        UserFileList userFileList = userFileListMapper.getUserFileInfo(user.getUid(), fileChunk.getOriginal_file_name(), userPath);
+        if(userFileList != null) return new ResultMessage<>(Message.WARNING, Message.fileNameRepetitive, null);
         // 是一个文件
         if (fileChunk.getTotal() == 1) {
             // 检验文件是否存在

@@ -114,9 +114,11 @@ public class UserBehaviorController {
 
         userFileListMapper.deleteFile(user.getUid(), fileName, userPath);
         // 同时删除本地预览图片
-        String path = Constant.preview_image_path + FileUtil.getFileName(userFileList.getPreview_url());
-        File file = new File(path);
-        file.delete();
+        if(FileUtil.isVedio(fileName) || FileUtil.isVedio(fileName)) {
+            String path = Constant.preview_image_path + FileUtil.getFileNameFromPath(userFileList.getPreview_url());
+            File file = new File(path);
+            file.delete();
+        }
 
         return new ResultMessage<>(Message.SUCCESS, Message.deleteFileSuccess, null);
     }
@@ -217,9 +219,9 @@ public class UserBehaviorController {
                 // 前端video标签播放的视频要使用h264编码 否则只有声音没有画面
                 // TODO： (1)、转换视频编码速度太慢 (2)、暂时只支持mp4视频文件
                 // 返回数据流依然没有画面 看来必须得转码？？
-                if (f_name.endsWith(".mp4"))
-                    FileUtil.convertMP4EncodeType(src_file, dest_file);
-                else
+//                if (f_name.endsWith(".mp4"))
+//                    FileUtil.convertMP4EncodeType(src_file, dest_file);
+//                else
                     Files.copy(src_file.toPath(), dest_file.toPath());
             }
 

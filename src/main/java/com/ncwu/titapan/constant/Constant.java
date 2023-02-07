@@ -62,5 +62,7 @@ public class Constant {
             "/registry",                 //注册路径
     };
 
+    public static final int CRYPTO_SECRET_KEY = 0x99;
+
 
 }
