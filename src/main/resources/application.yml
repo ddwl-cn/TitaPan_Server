@@ -2,7 +2,7 @@ spring:
   servlet:
     # 配置项目文件大小限制
     multipart:
-      max-file-size: 2048MB
+      max-file-size: 48MB
       max-request-size: 48MB
   mvc:
     static-path-pattern: /static/** # 解决 thymeleaf 静态资源访问失败的问题

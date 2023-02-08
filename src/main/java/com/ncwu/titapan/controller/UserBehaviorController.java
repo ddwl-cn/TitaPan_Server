@@ -233,6 +233,11 @@ public class UserBehaviorController {
         return new ResultMessage<>(Message.SUCCESS, "", randomName);
     }
 
+    @RequestMapping("/resetUserPath")
+    public void resetUserPath(HttpServletRequest request){
+        request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);
+    }
+
 
     // 没效果 还是没有画面
     @RequestMapping("/playVideo/{videoName}")
