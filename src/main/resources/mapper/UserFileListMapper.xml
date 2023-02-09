@@ -31,10 +31,11 @@
     </update>
 
     <update id="updateFolderName">
+#         记得在mysql 连接URL后加上 allowMultiQueries=true 允许一个标签内执行两条查询语句
         update user_file_list set f_name=#{newName}, upload_date=#{update_date} where uid=#{uid} and f_name=#{oldName} and storage_path=#{storage_path};
 #         旧的路径在新的路径上的下表
-        update user_file_list set storage_path=insert(storage_path, 1, length(#{storage_path} + #{oldName} + '\/'), #{storage_path} + #{newName} + '\/')
-        where uid=#{uid} and storage_path like (#{storage_path} + #{oldName} + '\/%')
+        update user_file_list set storage_path=insert(storage_path, 1, length(concat(#{storage_path}, #{oldName}, '/')), concat(#{storage_path}, #{newName}, '/'))
+        where uid=#{uid} and storage_path like (concat(#{storage_path}, #{oldName}, '/%'))
     </update>
 
     <delete id="deleteFile">
