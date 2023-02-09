@@ -21,10 +21,10 @@ public class ResultMessage<T> {
     private T data;
 
     public static void main(String[] args){
-        ResultMessage<User> rMsg = new ResultMessage(200, "uploadSuccess",
-                new User(1, "tom", "123456", 0));
-
-        System.out.println(rMsg);
+//        ResultMessage<User> rMsg = new ResultMessage(200, "uploadSuccess",
+//                new User(1, "tom", "123456", 0));
+//
+//        System.out.println(rMsg);
 
     }
 }

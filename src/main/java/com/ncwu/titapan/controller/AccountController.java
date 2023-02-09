@@ -40,7 +40,15 @@ public class AccountController {
         if(accountService.registry(request, response, userInfo)){
             return new ResultMessage<>(Message.SUCCESS, Message.registrySuccess, null);
         }
-        return new ResultMessage<>(Message.SUCCESS, Message.userExist, null);
+        return new ResultMessage<>(Message.WARNING, Message.userExist, null);
+    }
+
+    @RequestMapping("/logout")
+    public ResultMessage<String> logout(HttpServletRequest request,
+                                          HttpServletResponse response){
+
+        accountService.logout(request, response);
+        return new ResultMessage<>(Message.SUCCESS, Message.logoutSuccess, null);
     }
 
 }

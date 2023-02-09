@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.constant.Message;
+import com.ncwu.titapan.mapper.TokenMapper;
 import com.ncwu.titapan.mapper.UserMapper;
 import com.ncwu.titapan.pojo.ResultMessage;
+import com.ncwu.titapan.pojo.Token;
 import com.ncwu.titapan.pojo.User;
 import com.ncwu.titapan.utils.CookieUtil;
 import com.ncwu.titapan.utils.DateUtil;
@@ -30,15 +32,15 @@ import java.util.Date;
 public class AuthenticationInterceptor  implements HandlerInterceptor {
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private TokenMapper tokenMapper;
     // 调用接口前：前端请求需要认证
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        User user = new User();
+
         // session有用户信息不需要验证
 
-        if(request.getSession().getAttribute(Constant.user) != null){
-            return true;
-        }
+        User user = new User();
         // 验证token
         String token = request.getHeader("token");
         // 放行OPTION请求
@@ -69,7 +71,17 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
             response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
             return false;
         }
+        Token userToken = tokenMapper.getUserToken(user.getUid(), token);
+        if(userToken == null){
+            response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+            return false;
+        }
 
+        // 是否已经建立了会话 如果是直接返回true
+        if(request.getSession().getAttribute(Constant.user) != null){
+            return true;
+        }
+        // 否则
         // 将user加入session
         request.getSession().setAttribute(Constant.user, user);
         // 设置用户默认路径

@@ -49,11 +49,11 @@ public class TokenUtils {
     }
 
     public static void main(String[] args) {
-        User user = new User(1, "tom", "123456",0);
-        String token = getToken(user);
-        System.out.println(token);
-        DecodedJWT verify = verify(token, Constant.KEY);
-        System.out.println(verify.getClaim("u_name").asString());
+//        User user = new User(1, "tom", "123456",0);
+//        String token = getToken(user);
+//        System.out.println(token);
+//        DecodedJWT verify = verify(token, Constant.KEY);
+//        System.out.println(verify.getClaim("u_name").asString());
     }
 
 }

@@ -56,4 +56,13 @@
     <select id="getUserFolders" resultType="com.ncwu.titapan.pojo.UserFileList">
         select * from user_file_list where uid=#{uid} and storage_path=#{storage_path} and isFolder=1
     </select>
+
+    <select id="getAllFolderUnderFolder" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid} and storage_path like concat(#{folderPath}, #{folderName}, '/%') and isFolder=1
+    </select>
+
+    <select id="getAllFileUnderFolder" resultType="com.ncwu.titapan.pojo.UserFileList">
+        select * from user_file_list where uid=#{uid} and storage_path like concat(#{folderPath}, #{folderName}, '/%') and isFolder=0
+    </select>
+
 </mapper>

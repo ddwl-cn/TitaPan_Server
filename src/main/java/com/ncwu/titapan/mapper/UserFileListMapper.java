@@ -53,4 +53,15 @@ public interface UserFileListMapper {
 
     UserFileList[] getUserFolders(@Param("uid") int uid,
                                   @Param("storage_path") String storage_path);
+
+
+    // 获得目标文件夹下的所有文件夹列表
+    UserFileList[] getAllFolderUnderFolder(@Param("uid") int uid,
+                                           @Param("folderPath") String folderPath,
+                                           @Param("folderName") String folderName);
+
+    // 获得目标文件夹下的所有文件列表
+    UserFileList[] getAllFileUnderFolder(@Param("uid") int uid,
+                                         @Param("folderPath") String folderPath,
+                                         @Param("folderName") String folderName);
 }

@@ -84,7 +84,7 @@ public class FileUtil {
     public static void zipDir(String[] srcDir, String outDir,
                               boolean KeepDirStructure) throws RuntimeException, Exception {
 
-        FileOutputStream out = new FileOutputStream(new File(outDir));
+        FileOutputStream out = new FileOutputStream(outDir);
         ZipOutputStream zos = null;
         try {
             zos = new ZipOutputStream(out);
@@ -148,7 +148,6 @@ public class FileUtil {
             }
             else {
                 for (File file : listFiles) {
-                    // 文件夹要递归调用
                     if (KeepDirStructure) {
                         compress(file, zos, name + "/" + file.getName(),
                                 KeepDirStructure);
@@ -198,7 +197,8 @@ public class FileUtil {
                         if (KeepDirStructure) {
                             compress(file, zos, name + "/" + file.getName(),
                                     KeepDirStructure);
-                        } else {
+                        }
+                        else {
                             compress(file, zos, file.getName(),
                                     KeepDirStructure);
                         }
@@ -344,6 +344,27 @@ public class FileUtil {
                 file.delete();
             }
         }
+    }
+
+    public static boolean deleteFiles(File file) {
+        //判断文件不为null或文件目录存在
+        if (file == null || !file.exists()) {
+            return false;
+        }
+        //获取目录下子文件
+        File[] files = file.listFiles();
+        //遍历该目录下的文件对象
+        for (File f : files) {
+            //判断子目录是否存在子目录,如果是文件则删除
+            if (f.isDirectory()) {
+                //递归删除目录下的文件
+                deleteFiles(f);
+            }
+        }
+        //文件夹删除
+        file.delete();
+
+        return true;
     }
 
     /**

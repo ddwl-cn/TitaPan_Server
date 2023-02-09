@@ -1,6 +1,7 @@
 package com.ncwu.titapan.service.impl;
 
 import com.ncwu.titapan.constant.Constant;
+import com.ncwu.titapan.mapper.TokenMapper;
 import com.ncwu.titapan.mapper.UserMapper;
 import com.ncwu.titapan.pojo.User;
 import com.ncwu.titapan.service.AccountService;
@@ -20,7 +21,9 @@ import javax.servlet.http.HttpServletResponse;
 @Service
 public class AccountServiceImpl implements AccountService {
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
+    @Autowired
+    private TokenMapper tokenMapper;
 
     @Override
     public boolean login(HttpServletRequest request,
@@ -35,6 +38,8 @@ public class AccountServiceImpl implements AccountService {
             // TODO 更改用户状态、添加token验证
             String token = TokenUtils.getToken(user);
             response.setHeader("token", token);
+            // 存token到表中
+            tokenMapper.insertNewToken(user.getUid(), token);
             return true;
         }
         return false;
@@ -42,12 +47,23 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public boolean registry(HttpServletRequest request, HttpServletResponse response, User userInfo) {
-
         User user = userMapper.getUserInfoByUserName(userInfo.getU_name());
         if(user == null){
             userMapper.insertNewUser(userInfo);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        String token = request.getHeader("token");
+        // 删除用户token
+        tokenMapper.deleteToken(user.getUid(), token);
+
+        request.getSession().removeAttribute(Constant.user);
+        request.getSession().removeAttribute(Constant.userPath);
+        request.getSession().invalidate();
     }
 }

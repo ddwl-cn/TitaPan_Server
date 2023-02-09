@@ -1,5 +1,7 @@
 package com.ncwu.titapan.service;
 
+import com.ncwu.titapan.pojo.UserFileList;
+
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -12,5 +14,10 @@ public interface DownloadService {
 
 
     boolean downloadSingle(HttpServletResponse response, String res_f_name, String f_name);
+
+    boolean downloadFolder(HttpServletResponse response,
+                           int uid,
+                           String folderPath,
+                           String folderName);
 
 }

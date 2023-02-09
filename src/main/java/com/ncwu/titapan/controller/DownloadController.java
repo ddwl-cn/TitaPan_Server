@@ -56,8 +56,9 @@ public class DownloadController {
             }
         }
         else{
-            // 不支持文件夹下载
-            return new ResultMessage<>(Message.WARNING, Message.downloadFolderNotSupport, null);
+            // 下载文件
+            if(downloadService.downloadFolder(response, user.getUid(), userPath, f_name))
+                return null;
         }
         return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
     }

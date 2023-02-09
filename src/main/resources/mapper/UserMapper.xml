@@ -27,7 +27,7 @@
     </select>
 
     <insert id="insertNewUser" parameterType="com.ncwu.titapan.pojo.User">
-        insert into user(u_name, u_password) values(#{u_name}, #{u_password})
+        insert into user(u_name, u_password, nike_name) values(#{u_name}, #{u_password}, #{nike_name})
     </insert>
 
 </mapper>

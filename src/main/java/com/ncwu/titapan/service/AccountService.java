@@ -15,4 +15,6 @@ public interface AccountService {
     boolean login(HttpServletRequest request, HttpServletResponse response, User user);
 
     boolean registry(HttpServletRequest request, HttpServletResponse response, User user);
+
+    void logout(HttpServletRequest request, HttpServletResponse response);
 }

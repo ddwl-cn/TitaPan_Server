@@ -63,6 +63,8 @@ public class Message {
     public static final String getShareLinkInfoSuccess = "getShareLinkInfoSuccess";
 
     public static final String getUserFolderListSuccess = "getUserFolderListSuccess";
+    public static final String getUserInfoSuccess = "getUserInfoSuccess";
+    public static final String logoutSuccess = "logoutSuccess";
 
     // 成功
     public static final int SUCCESS = 200;

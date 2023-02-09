@@ -50,6 +50,7 @@ public class UserBehaviorController {
     public ResultMessage<UserFileList[]> getUserFileList(HttpServletRequest request){
         User user = (User)request.getSession().getAttribute(Constant.user);
         String userPath = (String)request.getSession().getAttribute(Constant.userPath);
+
         UserFileList[] userFiles = userFileListMapper.getUserFileList(user.getUid(), userPath);
 
         if(userFiles == null) new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
@@ -150,8 +151,7 @@ public class UserBehaviorController {
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
 
-        request.getSession().setAttribute("userPath", toPath);
-        String userPath = (String)request.getSession().getAttribute("userPath");
+        request.getSession().setAttribute(Constant.userPath, toPath);
 
         return new ResultMessage<>(Message.SUCCESS, Message.changePathSuccess, null);
     }
@@ -236,6 +236,16 @@ public class UserBehaviorController {
     @RequestMapping("/resetUserPath")
     public void resetUserPath(HttpServletRequest request){
         request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);
+    }
+
+    @RequestMapping("/getUserInfo")
+    public ResultMessage<User> getUserInfo(HttpServletRequest request){
+        User userInfo = (User)request.getSession().getAttribute(Constant.user);
+        if(userInfo == null)
+            return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
+        userInfo.setU_password(null);
+
+        return new ResultMessage<>(Message.SUCCESS, Message.getUserInfoSuccess, userInfo);
     }
 
 
