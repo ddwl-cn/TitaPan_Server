@@ -160,11 +160,15 @@ public class DownloadServiceImpl implements DownloadService {
         String randomName = PreviewImageUtil.createRandomName(64);
 
         String path = Constant.zip_storage_path + randomName;
-        File file = null;
+        File file = new File(path + "/" + folderName);
+        if(!file.exists()){
+            file.mkdirs();
+        }
         for (UserFileList userFileList : folderList) {
             // 创建所有的文件夹
             file = new File(path + "/"
-                    + userFileList.getStorage_path().substring(userFileList.getStorage_path().indexOf(folderName))
+                    + userFileList.getStorage_path()
+                    .substring(userFileList.getStorage_path().indexOf(folderName))
                     + userFileList.getF_name());
             if(!file.exists()){
                 file.mkdirs();
@@ -174,17 +178,16 @@ public class DownloadServiceImpl implements DownloadService {
         UserFileList[] fileList = userFileListMapper.getAllFileUnderFolder(uid, folderPath, folderName);
         for (UserFileList userFileList : fileList) {
             try {
-                file = new File(path + "/" + folderName + userFileList.getF_name());
+                file = new File(path + "/"
+                        + userFileList.getStorage_path().
+                        substring(userFileList.getStorage_path().indexOf(folderName))
+                        + userFileList.getF_name());
                 CustomFile customFile = fileMapper.getFileInfoByFid(userFileList.getFid());
                 String realPath = customFile.getStorage_path() + customFile.getF_name();
                 if (!file.exists()) {
                     File src = new File(realPath);
                     // 文件都复制到对应的文件夹下
-                    String destPath = path + "/"
-                            + userFileList.getStorage_path().
-                            substring(userFileList.getStorage_path().indexOf(folderName))
-                            + userFileList.getF_name();
-                    Files.copy(src.toPath(), new File(destPath).toPath());
+                    Files.copy(src.toPath(), file.toPath());
 
                 }
             } catch (Exception e) {
