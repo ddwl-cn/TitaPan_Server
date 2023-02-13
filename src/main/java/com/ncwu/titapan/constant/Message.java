@@ -66,6 +66,8 @@ public class Message {
     public static final String getUserInfoSuccess = "getUserInfoSuccess";
     public static final String logoutSuccess = "logoutSuccess";
 
+    public static final String getPublicFileListSuccess = "getPublicFileListSuccess";
+
     // 成功
     public static final int SUCCESS = 200;
     // 异常

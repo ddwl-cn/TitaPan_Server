@@ -39,6 +39,7 @@ public class PreviewImageUtil {
         try {
             Thumbnails.of(src)
                     .size(100, 100) //图片大小（长宽）保留比例 多余填充
+                    .outputQuality(1)
                     .toFile(new File(
                             Constant.preview_image_path
                                     + randomString

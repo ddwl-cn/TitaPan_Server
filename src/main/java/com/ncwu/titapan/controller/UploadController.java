@@ -170,4 +170,47 @@ public class UploadController {
         }
         return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
     }
+
+    @RequestMapping("/doUpload")
+    public ResultMessage<String> doUpload(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        FileChunk fileChunk) {
+        if (fileChunk == null || fileChunk.getTotal() <= 0)
+            return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
+        // 获得用户实体
+        User user = (User) request.getSession().getAttribute(Constant.user);
+        // 用户当前路径
+        String userPath = (String) request.getSession().getAttribute(Constant.userPath);
+        UserFileList userFileList = userFileListMapper.getUserFileInfo(user.getUid(), fileChunk.getOriginal_file_name(), userPath);
+        if(userFileList != null) return new ResultMessage<>(Message.WARNING, Message.fileNameRepetitive, null);
+
+        // 检验文件是否存在
+        CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
+        if (cFile == null) {
+            // 整个文件是一个分块
+            if (fileChunk.getTotal() == 1 && fileChunk.getMFile() != null && fileChunk.getMFile().getSize() > 0) {
+                uploadService.commonUploadFile(user, userPath, fileChunk);
+            }
+            // 多个分块的文件
+            else {
+                FileChunk fChunk = fileChunkMapper.getFileChunkByMD5(fileChunk.getMd5_val());
+                // 分块不存在 暂时保存分块
+                if (fChunk == null) {
+                    uploadService.saveChunk(fileChunk);
+                }
+                // 如果数据库中已经有所有的分块
+                if (fileChunkMapper.getFileChunkNumber(fileChunk.getId()) == fileChunk.getTotal()) {
+                    // 合并分块
+                    uploadService.mergeFileChunk(user, userPath, fileChunk);
+                    return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
+                }
+                return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);
+            }
+        }
+        // 整个文件已经存在了
+        else {
+            uploadService.quickUploadFile(user, userPath, fileChunk.getId(), fileChunk.getOriginal_file_name());
+        }
+        return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
+    }
 }
