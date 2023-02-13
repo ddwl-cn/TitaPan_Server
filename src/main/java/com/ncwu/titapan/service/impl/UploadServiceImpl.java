@@ -94,32 +94,15 @@ public class UploadServiceImpl implements UploadService {
             cFile.setStorage_path(Constant.sys_storage_path);
             cFile.setUpload_date(DateUtil.getFormatDate());
             cFile.setF_size(fileChunk.getMFile().getSize());
-            // 插入到file表中
-            fileMapper.insertFile(cFile);
-            // 插入后在查询file中的id
-            cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
 
-
-            ufList.setUid(user.getUid());
-            ufList.setFid(cFile.getFid());
-            ufList.setStorage_path(userPath);
-            ufList.setUpload_date(DateUtil.getFormatDate());
-            ufList.setF_name(fileChunk.getOriginal_file_name());
-            ufList.setF_size(cFile.getF_size());
             // 保存文件到统一的位置
             // String randomName = PreviewImageUtil.createRandomName(64) + fileChunk.getSuffix();
             File file = new File(Constant.sys_storage_path + cFile.getF_name());
             fileChunk.getMFile().transferTo(file);
-
-            // 加密并存储 TODO: 得先存储然后再加密 不然加密后无法获取缩略图 暂且搁置
-            // FileUtil.encodeFile(file, new File());
-            // file.delete();
-
+            String preview_url = null;
             if(FileUtil.isPic(fileChunk.getSuffix())) {
                 // 生成图片预览地址
-                String preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-
-                ufList.setPreview_url(preview_url);
+                preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
             }
             else if(FileUtil.isVedio(fileChunk.getSuffix())){
                 // 获取视频第一张图片
@@ -129,11 +112,23 @@ public class UploadServiceImpl implements UploadService {
                         framePath);
                 // 生成图片预览地址
                 File frameFile = new File(framePath);
-                String preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
-
+                preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
                 frameFile.delete();
-                ufList.setPreview_url(preview_url);
             }
+
+            cFile.setPreview_url(preview_url);
+            // 插入到file表中
+            fileMapper.insertFile(cFile);
+            // 插入后在查询file中的id
+            cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+
+            ufList.setUid(user.getUid());
+            ufList.setFid(cFile.getFid());
+            ufList.setStorage_path(userPath);
+            ufList.setUpload_date(DateUtil.getFormatDate());
+            ufList.setF_name(fileChunk.getOriginal_file_name());
+            ufList.setF_size(cFile.getF_size());
+            ufList.setPreview_url(preview_url);
             // 更新user_file_list
             userFileListMapper.insertFile(ufList);
         } catch (Exception e) {
@@ -162,30 +157,8 @@ public class UploadServiceImpl implements UploadService {
         ufList.setStorage_path(userPath);
         ufList.setF_name(fileName);
         ufList.setF_size(cFile.getF_size());
-        if(FileUtil.isPic(fileName.substring(fileName.lastIndexOf('.')))) {
-            // 生成图片预览地址
-            String preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-
-            ufList.setPreview_url(preview_url);
-        }
-        else if(FileUtil.isVedio(fileName.substring(fileName.lastIndexOf('.')))){
-            // 获取视频第一张图片
-            String framePath = Constant.preview_image_path+PreviewImageUtil.createRandomName(32)+".jpg";
-
-            try {
-                PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path()+cFile.getF_name()),
-                        framePath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            // 生成图片预览地址
-            File frameFile = new File(framePath);
-            String preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
-
-            frameFile.delete();
-            ufList.setPreview_url(preview_url);
-        }
-        // 更新cnt与用户文件列表
+        ufList.setPreview_url(cFile.getPreview_url());
+        // 更新用户文件列表
         userFileListMapper.insertFile(ufList);
 
     }
@@ -229,21 +202,11 @@ public class UploadServiceImpl implements UploadService {
         cFile.setStorage_path(Constant.sys_storage_path);
         cFile.setUpload_date(DateUtil.getFormatDate());
         cFile.setF_size(fileChunk.getTotalSize());
-        fileMapper.insertFile(cFile);
 
-        // 插入后在查询file中的id
-        cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
-        ufList.setUid(user.getUid());
-        ufList.setFid(cFile.getFid());
-        ufList.setStorage_path(userPath);
-        ufList.setUpload_date(DateUtil.getFormatDate());
-        ufList.setF_name(fileChunk.getOriginal_file_name());
-        ufList.setF_size(cFile.getF_size());
+        String preview_url = null;
         if(FileUtil.isPic(fileChunk.getSuffix())) {
             // 生成图片预览地址
-            String preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-
-            ufList.setPreview_url(preview_url);
+            preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
         }
         else if(FileUtil.isVedio(fileChunk.getSuffix())){
             // 获取视频第一张图片 TODO: 暂时只支持 mp4 缩略图
@@ -257,11 +220,24 @@ public class UploadServiceImpl implements UploadService {
             }
             // 生成图片预览地址
             File frameFile = new File(framePath);
-            String preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
+            preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
 
             frameFile.delete();
-            ufList.setPreview_url(preview_url);
         }
+        cFile.setPreview_url(preview_url);
+
+
+        fileMapper.insertFile(cFile);
+
+        // 插入后在查询file中的id
+        cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+        ufList.setUid(user.getUid());
+        ufList.setFid(cFile.getFid());
+        ufList.setStorage_path(userPath);
+        ufList.setUpload_date(DateUtil.getFormatDate());
+        ufList.setF_name(fileChunk.getOriginal_file_name());
+        ufList.setF_size(cFile.getF_size());
+        ufList.setPreview_url(preview_url);
 
         userFileListMapper.insertFile(ufList);
     }
@@ -298,29 +274,7 @@ public class UploadServiceImpl implements UploadService {
         ufList.setStorage_path(userPath);
         ufList.setF_name(fileName);
         ufList.setF_size(cFile.getF_size());
-        if(FileUtil.isPic(fileName.substring(fileName.lastIndexOf('.')))) {
-            // 生成图片预览地址
-            String preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-
-            ufList.setPreview_url(preview_url);
-        }
-        else if(FileUtil.isVedio(fileName.substring(fileName.lastIndexOf('.')))){
-            // 获取视频第一张图片
-            String framePath = Constant.preview_image_path+PreviewImageUtil.createRandomName(32)+".jpg";
-
-            try {
-                PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path()+cFile.getF_name()),
-                        framePath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            // 生成图片预览地址
-            File frameFile = new File(framePath);
-            String preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
-
-            frameFile.delete();
-            ufList.setPreview_url(preview_url);
-        }
+        ufList.setPreview_url(cFile.getPreview_url());
         // 更新用户文件列表
         userFileListMapper.insertFile(ufList);
 

@@ -23,4 +23,8 @@ public class CustomFile {
     String f_name;
     String upload_date;
     long f_size;
+    // 是否为公共文件
+    boolean public_file;
+    String preview_url;
+    String f_description;
 }

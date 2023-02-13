@@ -2,6 +2,7 @@ package com.ncwu.titapan.mapper;
 
 import com.ncwu.titapan.pojo.CustomFile;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * TODO file表相关操作
@@ -16,6 +17,13 @@ public interface FileMapper {
 
     void insertFile(CustomFile cFile);
 
+    CustomFile[] getPublicFileList(@Param("offset") int index,
+                                   @Param("count") int count);
 
+    int getPublicFileCount();
+
+    void insertPublicFile(CustomFile cFile);
+
+    CustomFile getPublicFile(String md5_val);
 
 }
