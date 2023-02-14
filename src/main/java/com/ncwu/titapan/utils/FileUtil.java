@@ -1,8 +1,6 @@
 package com.ncwu.titapan.utils;
 
-import com.ncwu.titapan.config.ScheduledConfig;
 import com.ncwu.titapan.constant.Constant;
-import lombok.Builder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -12,8 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import ws.schild.jave.*;
 
 import java.io.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -68,144 +71,61 @@ public class FileUtil {
 
     // 文件夹或文件列表的·压缩
 
-    private static final int  BUFFER_SIZE = 2 * 1024;
+    private static final int  BUFFER_SIZE = 1024 * 1024 * 2;
 
     /**
      * TODO 打包指定的文件包括文件夹
      *
-     * @param srcDir srcDir 是一个文件路径集合 也就是这个集合中的文件和文件夹将会被压缩打包
+     * @param srcPaths srcDir 是一个文件路径集合 也就是这个集合中的文件和文件夹将会被压缩打包
      * @param outDir outDir 压缩包输出路径
-     * @param KeepDirStructure KeepDirStructure
-     *                         为true时保留文件夹结构 不建议为false(必须确保不重名)
+     * @param keepDirStructure KeepDirStructure
+     *                         为true时保留文件夹结构 为false时(必须确保整个文件都没有重名文件)
      *
      * @Author ddwl.
-     * @Date 2022/5/28 19:19
+     * @Date 2023/2/14 20:35
      **/
-    public static void zipDir(String[] srcDir, String outDir,
-                              boolean KeepDirStructure) throws RuntimeException, Exception {
+    public static void zipDir(String[] srcPaths, String outDir, boolean keepDirStructure) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outDir);
+        ZipOutputStream zipOut = new ZipOutputStream(fos);
 
-        FileOutputStream out = new FileOutputStream(outDir);
-        ZipOutputStream zos = null;
-        try {
-            zos = new ZipOutputStream(out);
-            List<File> sourceFileList = new ArrayList<>();
-            for (String dir : srcDir) {
-
-
-                File sourceFile = new File(dir);
-
-                sourceFileList.add(sourceFile);
-            }
-            compress(sourceFileList, zos, KeepDirStructure);
-
-        } catch (Exception e) {
-            throw new RuntimeException("zip error from ZipUtils", e);
-        } finally {
-            if (zos != null) {
-                try {
-                    zos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        for (String srcPath : srcPaths) {
+            Path sourcePath = Paths.get(srcPath);
+            String dirName = sourcePath.getFileName().toString();
+            compress(sourcePath, zipOut, dirName, keepDirStructure);
         }
-
+        zipOut.close();
+        fos.close();
     }
-
     /**
-     * TODO 压缩重载1 针对文件
+     * TODO 打包单个文件 遇到文件夹就将路径加入压缩实体并递归
      *
-     * @param sourceFile sourceFile
+     * @param sourcePath sourcePath
      * @param zos zos
      * @param name name
-     * @param KeepDirStructure KeepDirStructure
-     *
+     * @param keepDirStructure keepDirStructure
+     * @return void
      * @Author ddwl.
-     * @Date 2022/5/28 19:22
-     **/
-    private static void compress(File sourceFile, ZipOutputStream zos,
-                                 String name, boolean KeepDirStructure) throws Exception {
-        byte[] buf = new byte[BUFFER_SIZE];
-        if (sourceFile.isFile()) {
+     * @Date 2023/2/14 20:27
+    **/
+    private static void compress(Path sourcePath, ZipOutputStream zos, String name, boolean keepDirStructure)
+            throws IOException {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        if (Files.isDirectory(sourcePath)) {
+            if (keepDirStructure) {
+                zos.putNextEntry(new ZipEntry(name + File.separator));
+            }
+            for (Path file : Files.newDirectoryStream(sourcePath)) {
+                compress(file, zos, name + File.separator + file.getFileName().toString(), keepDirStructure);
+            }
+        } else {
             zos.putNextEntry(new ZipEntry(name));
-            int len;
-            FileInputStream in = new FileInputStream(sourceFile);
-            while ((len = in.read(buf)) != -1) {
-                zos.write(buf, 0, len);
-            }
-
-            zos.closeEntry();
-            in.close();
-        }
-        else {
-            File[] listFiles = sourceFile.listFiles();
-            if (listFiles == null || listFiles.length == 0) {
-                if (KeepDirStructure) {
-                    zos.putNextEntry(new ZipEntry(name + "/"));
-                    zos.closeEntry();
-                }
-
-            }
-            else {
-                for (File file : listFiles) {
-                    if (KeepDirStructure) {
-                        compress(file, zos, name + "/" + file.getName(),
-                                KeepDirStructure);
-                    } else {
-                        compress(file, zos, file.getName(), KeepDirStructure);
-                    }
-
-                }
-            }
-        }
-    }
-
-    /**
-     * TODO 压缩重载2 针对子文件夹
-     *
-     * @param sourceFileList sourceFileList
-     * @param zos zos
-     * @param KeepDirStructure KeepDirStructure
-     *
-     * @Author ddwl.
-     * @Date 2022/5/28 19:25
-     **/
-    private static void compress(List<File> sourceFileList,
-                                 ZipOutputStream zos, boolean KeepDirStructure) throws Exception {
-        byte[] buf = new byte[BUFFER_SIZE];
-        for (File sourceFile : sourceFileList) {
-            String name = sourceFile.getName();
-            if (sourceFile.isFile()) {
-                zos.putNextEntry(new ZipEntry(name));
+            try (InputStream in = Files.newInputStream(sourcePath)) {
                 int len;
-                FileInputStream in = new FileInputStream(sourceFile);
-                while ((len = in.read(buf)) != -1) {
-                    zos.write(buf, 0, len);
-                }
-                zos.closeEntry();
-                in.close();
-            } else {
-                File[] listFiles = sourceFile.listFiles();
-                if (listFiles == null || listFiles.length == 0) {
-                    if (KeepDirStructure) {
-                        zos.putNextEntry(new ZipEntry(name + "/"));
-                        zos.closeEntry();
-                    }
-
-                } else {
-                    for (File file : listFiles) {
-                        if (KeepDirStructure) {
-                            compress(file, zos, name + "/" + file.getName(),
-                                    KeepDirStructure);
-                        }
-                        else {
-                            compress(file, zos, file.getName(),
-                                    KeepDirStructure);
-                        }
-
-                    }
+                while ((len = in.read(buffer)) > 0) {
+                    zos.write(buffer, 0, len);
                 }
             }
+            zos.closeEntry();
         }
     }
 
@@ -305,7 +225,7 @@ public class FileUtil {
         try {
             StringBuilder stringBuilder=new StringBuilder();
             stringBuilder.append(mergeFileDir).append(mergeFileName);
-            String newMergeFile=stringBuilder.toString();
+            String newMergeFile = stringBuilder.toString();
             //输出流，写文件,true表示追加写而不覆盖
             OutputStream outputStream=new BufferedOutputStream(new FileOutputStream(newMergeFile,true));
             //输入流，读文件
@@ -347,24 +267,28 @@ public class FileUtil {
     }
 
     public static boolean deleteFiles(File file) {
-        //判断文件不为null或文件目录存在
+        // 判断文件不为null或文件目录存在
         if (file == null || !file.exists()) {
             return false;
         }
-        //获取目录下子文件
+        // 获取目录下子文件
         File[] files = file.listFiles();
-        //遍历该目录下的文件对象
+        // 遍历该目录下的文件对象
         for (File f : files) {
-            //判断子目录是否存在子目录,如果是文件则删除
+            // 判断子目录是否存在子目录,如果是文件则删除
             if (f.isDirectory()) {
-                //递归删除目录下的文件
-                deleteFiles(f);
+                // 递归删除目录下的文件
+                if (!deleteFiles(f)) {
+                    return false;
+                }
+            } else {
+                if (!f.delete()) {
+                    return false;
+                }
             }
         }
-        //文件夹删除
-        file.delete();
-
-        return true;
+        // 文件夹删除
+        return file.delete();
     }
 
     /**

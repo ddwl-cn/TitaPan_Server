@@ -52,13 +52,12 @@ public class PublicFileController {
     }
 
     // 上传公共文件 暂时不使用分块上传和快传
+    // TODO 公共文件上传计划从另一个客户端进行上传，不在此客户端
     @RequestMapping("/uploadPublicFile")
     public ResultMessage<Map<String, Object>> uploadPublicFile(HttpServletRequest request,
                                                                 HttpServletResponse response,
                                                                 FileChunk fileChunk,
                                                                String f_description){
-        System.out.println(fileChunk);
-        System.out.println(f_description);
         // 数据无效返回错误信息
         if (fileChunk == null || fileChunk.getMFile() == null || fileChunk.getMFile().getSize() <= 0 || fileChunk.getTotal() <= 0)
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
@@ -87,10 +86,11 @@ public class PublicFileController {
                     // 获取视频第一张图片
                     String framePath = Constant.preview_image_path+PreviewImageUtil.createRandomName(32)+".jpg";
 
-                    PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path()+cFile.getF_name()),
+                    PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path() + fileChunk.getId() + fileChunk.getSuffix()),
                             framePath);
                     // 生成图片预览地址
                     File frameFile = new File(framePath);
+
                     preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
                     frameFile.delete();
                 }

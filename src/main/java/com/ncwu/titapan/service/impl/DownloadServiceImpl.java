@@ -88,61 +88,34 @@ public class DownloadServiceImpl implements DownloadService {
     }
 
     @Override
-    public boolean downloadFolder(HttpServletResponse response,
-                                  int uid,
-                                  String folderPath,
-                                  String folderName) {
-        String path = createFolderStructure(uid, folderPath, folderName);
-        String []src = new String[1];
-        src[0] = path + folderName;
+    public boolean downloadFolder(HttpServletResponse response, int uid, String folderPath, String folderName) {
         try {
+            // 创建文件夹结构
+            String path = createFolderStructure(uid, folderPath, folderName);
+            // 获取需要打包的文件夹路径
+            String src = path + folderName;
+            // 创建压缩文件
             File zipFile = new File(path + folderName + ".zip");
             zipFile.createNewFile();
             // 打包成压缩包
-            FileUtil.zipDir(src, path + folderName + ".zip", true);
+            FileUtil.zipDir(new String[] {src}, zipFile.getAbsolutePath(), true);
 
-            File file = new File(path + folderName + ".zip");
-            // 返回文件流
-            if(file.exists() && file.isFile()){
-                response.setHeader("Content-Disposition", "attachment;fileName=" + folderName + ".zip");// 设置文件名
-                response.setContentType("application/octet-stream");
-            /*
-            getResponseHeader()方法只能拿到6个基本字段：
-            Cache-Control、Content-Language、Content-Type、Expires、Last-Modified、Pragma
-            */
-                // 暴露header 中的 Content-Disposition信息 用于前端接收数据流
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            // 设置响应头
+            response.setHeader("Content-Disposition", "attachment;fileName=" + folderName + ".zip");
+            response.setContentType("application/octet-stream");
+            // 暴露响应头 Content-Disposition
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setHeader("Content-Length", String.valueOf(zipFile.length()));
 
-                response.setHeader("Content-Length", String.valueOf(file.length()));
-                // 缓冲区
+            // 使用 try-with-resources 写入响应流
+            try (FileInputStream in = new FileInputStream(zipFile);
+                 OutputStream out = response.getOutputStream()) {
                 byte[] buffer = new byte[1024];
-                FileInputStream fileInputStream = null;
-                BufferedInputStream bufferedInputStream = null;
-                // 读取byte数据到 OutputStream 中
-                try{
-                    fileInputStream = new FileInputStream(file);
-                    bufferedInputStream = new BufferedInputStream(fileInputStream);
-                    OutputStream outputStream = response.getOutputStream();
-                    int index = bufferedInputStream.read(buffer);
-                    while(index != -1){
-                        outputStream.write(buffer, 0, index);
-                        index = bufferedInputStream.read(buffer);
-                    }
-
-                }
-                catch(IOException e){
-                    e.printStackTrace();
-                }
-                finally {
-                    try {
-                        if (bufferedInputStream != null) bufferedInputStream.close();
-                        if (fileInputStream != null) fileInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                int len;
+                while ((len = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, len);
                 }
             }
-
             // 删除本地文件
             FileUtil.deleteFiles(new File(path));
         } catch (Exception e) {
@@ -152,18 +125,22 @@ public class DownloadServiceImpl implements DownloadService {
         return true;
     }
 
-    //在本地创建目录结构
+
+    //根据数据库数据在本地创建目录结构
     private String createFolderStructure(int uid,
                                String folderPath,
                                String folderName){
+        // 从数据库查询目标文件夹下的所有文件夹
         UserFileList[] folderList = userFileListMapper.getAllFolderUnderFolder(uid, folderPath, folderName);
+        // 获得一个随机名称作为临时路径的根目录 随后要删除
         String randomName = PreviewImageUtil.createRandomName(64);
-
         String path = Constant.zip_storage_path + randomName;
         File file = new File(path + "/" + folderName);
+        // 创建根目录 和 要下载的目录
         if(!file.exists()){
             file.mkdirs();
         }
+        // 遍历所有查询到的目录 并在根路径下创建物理目录
         for (UserFileList userFileList : folderList) {
             // 创建所有的文件夹
             file = new File(path + "/"
@@ -174,8 +151,9 @@ public class DownloadServiceImpl implements DownloadService {
                 file.mkdirs();
             }
         }
-
+        // 从数据库中查询目标文件夹下所有文件
         UserFileList[] fileList = userFileListMapper.getAllFileUnderFolder(uid, folderPath, folderName);
+        // 遍历每一个文件并复制文件到对应位置
         for (UserFileList userFileList : fileList) {
             try {
                 file = new File(path + "/"
@@ -188,13 +166,12 @@ public class DownloadServiceImpl implements DownloadService {
                     File src = new File(realPath);
                     // 文件都复制到对应的文件夹下
                     Files.copy(src.toPath(), file.toPath());
-
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        // 返回根文件夹路径
+        // 返回根文件夹路径 以便随后删除
         return path + "/";
     }
     public static void main(String[] args){

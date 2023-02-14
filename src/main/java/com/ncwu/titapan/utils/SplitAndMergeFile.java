@@ -27,11 +27,11 @@ public class SplitAndMergeFile {
         //每个小文件分割的起始位置
         long splitSmallFileBeginPos=0;
         //实际分割的小文件大小
-        long splitSmallFileActualSize=splitSmallFileSize>splitFileSize?splitFileSize:splitSmallFileSize;
+        long splitSmallFileActualSize= Math.min(splitSmallFileSize, splitFileSize);
         //被分割的小文件个数
         int size=(int)Math.ceil(splitFileSize*1.0/splitSmallFileSize);
         //被分割的小文件路径list
-        List<String> splitSmallFileList=new ArrayList<String>();
+        List<String> splitSmallFileList= new ArrayList<>();
         for (int i = 0; i < size; i++) {
             splitSmallFileList.add(splitSmallFilesDir+"/"+i+"_"+splitFile.getName());
         }

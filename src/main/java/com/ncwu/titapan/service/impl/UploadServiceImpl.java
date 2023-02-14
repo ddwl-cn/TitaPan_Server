@@ -14,6 +14,7 @@ import com.ncwu.titapan.utils.FileUtil;
 import com.ncwu.titapan.utils.PreviewImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -186,9 +187,17 @@ public class UploadServiceImpl implements UploadService {
         }
 
         // 文件合并 并返回保存的路径
-        String filePath = FileUtil.merge(filePathList,
-                Constant.sys_storage_path,
-                fileChunk.getId() + fileChunk.getSuffix());
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        try {
+            String filePath = FileUtil.merge(filePathList,
+                    Constant.sys_storage_path,
+                    fileChunk.getId() + fileChunk.getSuffix());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        stopWatch.stop();
+        System.out.println("合并文件 " + fileChunk.getOriginal_file_name() + "用时：" + stopWatch.getTotalTimeSeconds() + "秒.");
         // 合并完成删除临时文件
         FileUtil.deleteTempFile(filePathList);
         // TODO 删除file_chunk表中的数据
