@@ -32,6 +32,19 @@ public class AccountController {
         return new ResultMessage<>(Message.WARNING, Message.userInfoError, null);
     }
 
+
+    @RequestMapping("/adminLogin")
+    public ResultMessage<String> adminLogin(HttpServletRequest request,
+                                       HttpServletResponse response,
+                                       User userInfo){
+
+        if(accountService.adminLogin(request, response, userInfo)) {
+            return new ResultMessage<>(Message.SUCCESS, Message.loginSuccess, null);
+        }
+        return new ResultMessage<>(Message.WARNING, Message.userInfoError, null);
+    }
+
+
     @RequestMapping("/registry")
     public ResultMessage<String> registry(HttpServletRequest request,
                                           HttpServletResponse response,

@@ -27,4 +27,5 @@ public class CustomFile {
     boolean public_file;
     String preview_url;
     String f_description;
+    String n_name;
 }

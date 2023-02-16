@@ -21,4 +21,5 @@ public class User {
     String u_password;
     int u_state;
     String nike_name;
+    int type;
 }

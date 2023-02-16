@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
                          HttpServletResponse response,
                          User userInfo) {
         User user = userMapper.getUserInfoByUserName(userInfo.getU_name());
-        if(user != null && user.getU_password().equals(userInfo.getU_password()) && user.getU_state() == 0){
+        if(user != null && user.getU_password().equals(userInfo.getU_password()) && user.getU_state() == 0 && userInfo.getType() == 0){
             // 登录成功 将用户实体放入session中
             request.getSession().setAttribute(Constant.user, user);
             // 添加用户所处路径
@@ -44,6 +44,27 @@ public class AccountServiceImpl implements AccountService {
         }
         return false;
     }
+
+    @Override
+    public boolean adminLogin(HttpServletRequest request,
+                         HttpServletResponse response,
+                         User userInfo) {
+        User user = userMapper.getUserInfoByUserName(userInfo.getU_name());
+        if(user != null && user.getU_password().equals(userInfo.getU_password()) && user.getU_state() == 0 && userInfo.getType() == 1){
+            // 登录成功 将用户实体放入session中
+            request.getSession().setAttribute(Constant.user, user);
+            // 添加用户所处路径
+            request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);
+            // TODO 更改用户状态、添加token验证
+            String token = TokenUtils.getToken(user);
+            response.setHeader("token", token);
+            // 存token到表中
+            tokenMapper.insertNewToken(user.getUid(), token);
+            return true;
+        }
+        return false;
+    }
+
 
     @Override
     public boolean registry(HttpServletRequest request, HttpServletResponse response, User userInfo) {

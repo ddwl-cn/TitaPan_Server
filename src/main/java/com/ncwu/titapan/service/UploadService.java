@@ -22,14 +22,14 @@ public interface UploadService {
     boolean checkFileChunk(String md5_val);
 
     // 用于上传单个完整文件
-    void commonUploadFile(User user, String userPath, FileChunk fileChunk);
+    boolean commonUploadFile(User user, String userPath, FileChunk fileChunk);
     // 用于上传某个文件中的某个文件块
-    void quickUploadFile(User user, String userPath, String md5_val, String fileName);
+    boolean quickUploadFile(User user, String userPath, String md5_val, String fileName);
     // 用于文件块合并后的相关操作
-    void mergeFileChunk(User user, String userPath, FileChunk fileChunk);
+    boolean mergeFileChunk(User user, String userPath, FileChunk fileChunk);
     // 文件块上传过程中发现整个文件已经存在
-    void mergeFileChunk(User user, String userPath, String md5_val, String fileName);
+//    boolean mergeFileChunk(User user, String userPath, String md5_val, String fileName);
 
-    void saveChunk(FileChunk fileChunk);
+    boolean saveChunk(FileChunk fileChunk);
 
 }

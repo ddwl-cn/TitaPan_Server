@@ -6,10 +6,10 @@
 <mapper namespace="com.ncwu.titapan.mapper.FileMapper">
 
     <select id="getFileInfoByMD5" parameterType="String" resultType="com.ncwu.titapan.pojo.CustomFile">
-        select * from file where md5_val=#{md5_val} and public_file=0
+        select * from file where md5_val=#{md5_val}
     </select>
     <select id="getFileInfoByFid" parameterType="int" resultType="com.ncwu.titapan.pojo.CustomFile">
-        select * from file where fid=#{fid} and public_file=0
+        select * from file where fid=#{fid}
     </select>
 
 <!--  插入新文件  -->
@@ -20,12 +20,12 @@
 
     <!--  插入公共文件  -->
     <insert id="insertPublicFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
-        insert into file(md5_val, storage_path, f_name, upload_date, f_size, public_file, preview_url, f_description)
-        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size}, 1, #{preview_url}, #{f_description})
+        insert into file(md5_val, storage_path, f_name, upload_date, f_size, public_file, preview_url, f_description, n_name)
+        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size}, 1, #{preview_url}, #{f_description}, #{n_name})
     </insert>
 
     <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.CustomFile">
-        select fid, f_name, upload_date, f_size, preview_url, f_description from file where public_file=1
+        select fid, f_name, upload_date, f_size, preview_url, f_description, n_name from file where public_file=1
         limit #{offset}, #{count}
     </select>
 
@@ -37,5 +37,12 @@
     <select id="getPublicFileCount" resultType="int">
         select count(fid) from file where public_file=1
     </select>
+
+    <update id="updateFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
+        update file set fid=#{fid}, md5_val=#{md5_val}, storage_path=#{storage_path},
+         f_name=#{f_name}, upload_date=#{upload_date}, f_size=#{f_size},
+         public_file=#{public_file}, preview_url=#{preview_url}, f_description=#{f_description},
+         n_name=#{n_name}
+    </update>
 
 </mapper>

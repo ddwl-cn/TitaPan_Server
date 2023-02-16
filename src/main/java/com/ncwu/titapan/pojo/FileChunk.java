@@ -22,6 +22,7 @@ public class FileChunk {
     String md5_val;
     // 文件实体
     MultipartFile mFile;
+    MultipartFile mPreview;
     // 文件块大小
     long chunk_size;
     // 文件块编号
@@ -30,6 +31,7 @@ public class FileChunk {
     int total;
     // 原始文件名
     String original_file_name;
+    String n_name;
     // 存储路径
     String storage_path;
     // 文件块标准大小
@@ -38,6 +40,8 @@ public class FileChunk {
     String suffix;
     // 分块块上传时间
     String upload_date;
+    String f_description;
+    boolean public_file;
     // 生成临时存储名称 后缀自定义为temp
     public String getTempName(){
         return md5_val + suffix;

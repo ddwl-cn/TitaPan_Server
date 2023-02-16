@@ -53,7 +53,6 @@ public class UploadController {
                 else{
                     // 块是否存在
                     if(uploadService.checkFileChunk(fileChunk.getMd5_val())){
-                        System.out.println(6);
                         return new ResultMessage<>(Message.SUCCESS, Message.quickUpload, null);
                     }
                     else{

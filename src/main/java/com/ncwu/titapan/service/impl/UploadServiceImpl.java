@@ -84,7 +84,7 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 8:56
     **/
     @Override
-    public void commonUploadFile(User user, String userPath, FileChunk fileChunk) {
+    public boolean commonUploadFile(User user, String userPath, FileChunk fileChunk) {
         try {
             CustomFile cFile = new CustomFile();
             UserFileList ufList = new UserFileList();
@@ -100,41 +100,47 @@ public class UploadServiceImpl implements UploadService {
             // String randomName = PreviewImageUtil.createRandomName(64) + fileChunk.getSuffix();
             File file = new File(Constant.sys_storage_path + cFile.getF_name());
             fileChunk.getMFile().transferTo(file);
+
             String preview_url = null;
-            if(FileUtil.isPic(fileChunk.getSuffix())) {
-                // 生成图片预览地址
-                preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-            }
-            else if(FileUtil.isVedio(fileChunk.getSuffix())){
-                // 获取视频第一张图片
-                String framePath = Constant.preview_image_path+PreviewImageUtil.createRandomName(32)+".jpg";
 
-                PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path()+cFile.getF_name()),
-                        framePath);
-                // 生成图片预览地址
-                File frameFile = new File(framePath);
-                preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
-                frameFile.delete();
-            }
 
+            if(user.getType() == 1 && fileChunk.isPublic_file()){
+                cFile.setPublic_file(true);
+                cFile.setF_description(fileChunk.getF_description());
+                cFile.setN_name(fileChunk.getOriginal_file_name());
+                if(fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
+
+                File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
+                fileChunk.getMPreview().transferTo(tFile);
+                preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
+                tFile.delete();
+            }
+            else{
+                preview_url = PreviewImageUtil.createPreviewURL(cFile.getStorage_path() + cFile.getF_name(), fileChunk.getSuffix());
+            }
+            System.out.println(preview_url);
             cFile.setPreview_url(preview_url);
             // 插入到file表中
-            fileMapper.insertFile(cFile);
+            if(fileChunk.isPublic_file()) fileMapper.insertPublicFile(cFile);
+            else fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
-            cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+            if(user.getType() == 0) {
+                cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
 
-            ufList.setUid(user.getUid());
-            ufList.setFid(cFile.getFid());
-            ufList.setStorage_path(userPath);
-            ufList.setUpload_date(DateUtil.getFormatDate());
-            ufList.setF_name(fileChunk.getOriginal_file_name());
-            ufList.setF_size(cFile.getF_size());
-            ufList.setPreview_url(preview_url);
-            // 更新user_file_list
-            userFileListMapper.insertFile(ufList);
+                ufList.setUid(user.getUid());
+                ufList.setFid(cFile.getFid());
+                ufList.setStorage_path(userPath);
+                ufList.setUpload_date(DateUtil.getFormatDate());
+                ufList.setF_name(fileChunk.getOriginal_file_name());
+                ufList.setF_size(cFile.getF_size());
+                ufList.setPreview_url(preview_url);
+                // 更新user_file_list
+                userFileListMapper.insertFile(ufList);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     /**
@@ -149,7 +155,7 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 16:42
     **/
     @Override
-    public void quickUploadFile(User user, String userPath, String md5_val, String fileName) {
+    public boolean quickUploadFile(User user, String userPath, String md5_val, String fileName) {
         CustomFile cFile = fileMapper.getFileInfoByMD5(md5_val);
         UserFileList ufList = new UserFileList();
         ufList.setUid(user.getUid());
@@ -161,6 +167,7 @@ public class UploadServiceImpl implements UploadService {
         ufList.setPreview_url(cFile.getPreview_url());
         // 更新用户文件列表
         userFileListMapper.insertFile(ufList);
+        return true;
 
     }
 
@@ -175,119 +182,122 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 16:39
     **/
     @Override
-    public void mergeFileChunk(User user, String userPath, FileChunk fileChunk) {
-        // 查询文件所有的分块
-        List<FileChunk> fileChunkList =
-                fileChunkMapper.getFileChunkListById(fileChunk.getId());
-
-        List<String> filePathList = new ArrayList<>();
-        for (FileChunk chunk : fileChunkList) {
-            filePathList.add(chunk.getStorage_path()
-                    + chunk.getTempName());
-        }
-
-        // 文件合并 并返回保存的路径
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+    public boolean mergeFileChunk(User user, String userPath, FileChunk fileChunk) {
         try {
-            String filePath = FileUtil.merge(filePathList,
+            // 查询文件所有的分块
+            List<FileChunk> fileChunkList =
+                    fileChunkMapper.getFileChunkListById(fileChunk.getId());
+
+            List<String> filePathList = new ArrayList<>();
+            for (FileChunk chunk : fileChunkList) {
+                filePathList.add(chunk.getStorage_path()
+                        + chunk.getTempName());
+            }
+            System.out.println(filePathList);
+            // 文件合并 并返回保存的路径
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            FileUtil.merge(filePathList,
                     Constant.sys_storage_path,
                     fileChunk.getId() + fileChunk.getSuffix());
-        } catch (Exception e) {
+
+            stopWatch.stop();
+            System.out.println("合并文件 " + fileChunk.getOriginal_file_name() + "用时：" + stopWatch.getTotalTimeSeconds() + "秒.");
+            // 合并完成删除临时文件
+            FileUtil.deleteTempFile(filePathList);
+            // TODO 删除file_chunk表中的数据
+            fileChunkMapper.deleteFileChunkById(fileChunk.getId());
+
+            // 修改file表与userfile表
+            CustomFile cFile = new CustomFile();
+            UserFileList ufList = new UserFileList();
+            cFile.setMd5_val(fileChunk.getId());
+            cFile.setF_name(fileChunk.getId() + fileChunk.getSuffix());
+            cFile.setStorage_path(Constant.sys_storage_path);
+            cFile.setUpload_date(DateUtil.getFormatDate());
+            cFile.setF_size(fileChunk.getTotalSize());
+
+            String preview_url = null;
+
+            if (user.getType() == 1 && fileChunk.isPublic_file()) {
+                cFile.setPublic_file(true);
+                cFile.setF_description(fileChunk.getF_description());
+                cFile.setN_name(fileChunk.getOriginal_file_name());
+                if (fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
+
+                File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
+                fileChunk.getMPreview().transferTo(tFile);
+                preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
+                tFile.delete();
+            } else {
+                preview_url = PreviewImageUtil.createPreviewURL(cFile.getStorage_path() + cFile.getF_name(), fileChunk.getSuffix());
+            }
+
+            cFile.setPreview_url(preview_url);
+
+
+            if(fileChunk.isPublic_file()) fileMapper.insertPublicFile(cFile);
+            else fileMapper.insertFile(cFile);
+
+            // 插入后在查询file中的id
+            if(user.getType() == 0) {
+                cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+                ufList.setUid(user.getUid());
+                ufList.setFid(cFile.getFid());
+                ufList.setStorage_path(userPath);
+                ufList.setUpload_date(DateUtil.getFormatDate());
+                ufList.setF_name(fileChunk.getOriginal_file_name());
+                ufList.setF_size(cFile.getF_size());
+                ufList.setPreview_url(preview_url);
+
+                userFileListMapper.insertFile(ufList);
+            }
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
-        stopWatch.stop();
-        System.out.println("合并文件 " + fileChunk.getOriginal_file_name() + "用时：" + stopWatch.getTotalTimeSeconds() + "秒.");
-        // 合并完成删除临时文件
-        FileUtil.deleteTempFile(filePathList);
-        // TODO 删除file_chunk表中的数据
-        fileChunkMapper.deleteFileChunkById(fileChunk.getId());
-
-        // 修改file表与userfile表
-        CustomFile cFile = new CustomFile();
-        UserFileList ufList = new UserFileList();
-        cFile.setMd5_val(fileChunk.getId());
-        cFile.setF_name(fileChunk.getId() + fileChunk.getSuffix());
-        cFile.setStorage_path(Constant.sys_storage_path);
-        cFile.setUpload_date(DateUtil.getFormatDate());
-        cFile.setF_size(fileChunk.getTotalSize());
-
-        String preview_url = null;
-        if(FileUtil.isPic(fileChunk.getSuffix())) {
-            // 生成图片预览地址
-            preview_url = PreviewImageUtil.get_preview_pic_url(new File(cFile.getStorage_path() + cFile.getF_name()));
-        }
-        else if(FileUtil.isVedio(fileChunk.getSuffix())){
-            // 获取视频第一张图片 TODO: 暂时只支持 mp4 缩略图
-            String framePath = Constant.preview_image_path+PreviewImageUtil.createRandomName(32)+".jpg";
-
-            try {
-                PreviewImageUtil.getVideoFirstFrame(new File(cFile.getStorage_path()+cFile.getF_name()),
-                        framePath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            // 生成图片预览地址
-            File frameFile = new File(framePath);
-            preview_url = PreviewImageUtil.get_preview_pic_url(frameFile);
-
-            frameFile.delete();
-        }
-        cFile.setPreview_url(preview_url);
-
-
-        fileMapper.insertFile(cFile);
-
-        // 插入后在查询file中的id
-        cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
-        ufList.setUid(user.getUid());
-        ufList.setFid(cFile.getFid());
-        ufList.setStorage_path(userPath);
-        ufList.setUpload_date(DateUtil.getFormatDate());
-        ufList.setF_name(fileChunk.getOriginal_file_name());
-        ufList.setF_size(cFile.getF_size());
-        ufList.setPreview_url(preview_url);
-
-        userFileListMapper.insertFile(ufList);
-    }
-
-    /**
-     * TODO 此方法用于当上传文件块到一半时但检测到服务端完整文件已经存在的情况 终止上传直接更新user_file_list表
-     * 好像写多余了
-     * @param user user
-     * @param userPath userPath
-     * @param md5_val md5_val
-     * @param fileName fileName
-     * @return void
-     * @Author ddwl.
-     * @Date 2023/1/6 16:38
-    **/
-    @Override
-    public void mergeFileChunk(User user, String userPath, String md5_val, String fileName) {
-        // 则删除部分块
-        List<FileChunk> fileChunkList =
-                fileChunkMapper.getFileChunkListById(md5_val);
-        List<String> filePathList = new ArrayList<>();
-        for (FileChunk chunk : fileChunkList) {
-            filePathList.add(chunk.getStorage_path()
-                    + chunk.getTempName());
-        }
-        FileUtil.deleteTempFile(filePathList);
-        fileChunkMapper.deleteFileChunkById(md5_val);
-
-        CustomFile cFile = fileMapper.getFileInfoByMD5(md5_val);
-        UserFileList ufList = new UserFileList();
-        ufList.setUid(user.getUid());
-        ufList.setFid(cFile.getFid());
-        ufList.setUpload_date(DateUtil.getFormatDate());
-        ufList.setStorage_path(userPath);
-        ufList.setF_name(fileName);
-        ufList.setF_size(cFile.getF_size());
-        ufList.setPreview_url(cFile.getPreview_url());
-        // 更新用户文件列表
-        userFileListMapper.insertFile(ufList);
+        return true;
 
     }
+
+//    /**
+//     * TODO 此方法用于当上传文件块到一半时但检测到服务端完整文件已经存在的情况 终止上传直接更新user_file_list表
+//     * 好像写多余了
+//     * @param user user
+//     * @param userPath userPath
+//     * @param md5_val md5_val
+//     * @param fileName fileName
+//     * @return void
+//     * @Author ddwl.
+//     * @Date 2023/1/6 16:38
+//    **/
+//    @Override
+//    public boolean mergeFileChunk(User user, String userPath, String md5_val, String fileName) {
+//        // 则删除部分块
+//        List<FileChunk> fileChunkList =
+//                fileChunkMapper.getFileChunkListById(md5_val);
+//        List<String> filePathList = new ArrayList<>();
+//        for (FileChunk chunk : fileChunkList) {
+//            filePathList.add(chunk.getStorage_path()
+//                    + chunk.getTempName());
+//        }
+//        FileUtil.deleteTempFile(filePathList);
+//        fileChunkMapper.deleteFileChunkById(md5_val);
+//
+//        CustomFile cFile = fileMapper.getFileInfoByMD5(md5_val);
+//        UserFileList ufList = new UserFileList();
+//        ufList.setUid(user.getUid());
+//        ufList.setFid(cFile.getFid());
+//        ufList.setUpload_date(DateUtil.getFormatDate());
+//        ufList.setStorage_path(userPath);
+//        ufList.setF_name(fileName);
+//        ufList.setF_size(cFile.getF_size());
+//        ufList.setPreview_url(cFile.getPreview_url());
+//        // 更新用户文件列表
+//        userFileListMapper.insertFile(ufList);
+//        return true;
+//
+//    }
 
     /**
      * TODO 暂时保存文件分块
@@ -298,7 +308,7 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 11:58
     **/
     @Override
-    public void saveChunk(FileChunk fileChunk) {
+    public boolean saveChunk(FileChunk fileChunk) {
         try {
             MultipartFile mFile = fileChunk.getMFile();
             FileChunk theChunk = new FileChunk();
@@ -322,6 +332,6 @@ public class UploadServiceImpl implements UploadService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        return true;
     }
 }

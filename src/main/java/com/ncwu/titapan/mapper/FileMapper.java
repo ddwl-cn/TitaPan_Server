@@ -25,5 +25,6 @@ public interface FileMapper {
     void insertPublicFile(CustomFile cFile);
 
     CustomFile getPublicFile(String md5_val);
+    void updateFile(CustomFile cFile);
 
 }
