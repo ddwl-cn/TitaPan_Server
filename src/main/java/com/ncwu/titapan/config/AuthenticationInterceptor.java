@@ -47,18 +47,14 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         // session有用户信息不需要验证
-        System.out.println("-----------------------------------------------------");
-        System.out.println("debug-1");
         User user = new User();
         // 验证token
         String token = request.getHeader("token");
         // 放行OPTION请求
         if(token == null && HttpMethod.OPTIONS.toString().equals(request.getMethod())){
-            System.out.println("debug-2");
             return true;
         }
         else if(token == null || token.isBlank()){
-            System.out.println("debug-3");
             response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
             return false;
         }
@@ -67,19 +63,16 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
         try {
             verify = TokenUtils.verify(token, Constant.KEY);
             if(verify == null){
-                System.out.println("debug-4");
                 response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
                 return false;
             }
 
             user = userMapper.getUserInfoByUserId(verify.getClaim("uid").asInt());
             if(user == null){
-                System.out.println("debug-5");
                 response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
                 return false;
             }
         }catch(Exception e){
-            System.out.println("debug-6");
             System.out.println("token失效异常: " + e.getLocalizedMessage());
             e.printStackTrace();
             response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
@@ -87,14 +80,12 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
         }
         Token userToken = tokenMapper.getUserToken(user.getUid(), token);
         if(userToken == null){
-            System.out.println("debug-7");
             response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
             return false;
         }
 
         // 是否已经建立了会话 如果是直接返回true
         if(request.getSession().getAttribute(Constant.user) != null){
-            System.out.println("debug-8");
             return true;
         }
         System.out.println("debug-9");
