@@ -17,14 +17,6 @@ public interface FileMapper {
 
     void insertFile(CustomFile cFile);
 
-    CustomFile[] getPublicFileList(@Param("offset") int index,
-                                   @Param("count") int count);
-
-    int getPublicFileCount();
-
-    void insertPublicFile(CustomFile cFile);
-
-    CustomFile getPublicFile(String md5_val);
     void updateFile(CustomFile cFile);
 
 }

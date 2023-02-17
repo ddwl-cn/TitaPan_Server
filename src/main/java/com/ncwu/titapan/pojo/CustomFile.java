@@ -26,6 +26,6 @@ public class CustomFile {
     // 是否为公共文件
     boolean public_file;
     String preview_url;
-    String f_description;
-    String n_name;
+//    String f_description;
+//    String n_name;
 }

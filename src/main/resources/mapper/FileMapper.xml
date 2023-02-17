@@ -14,35 +14,14 @@
 
 <!--  插入新文件  -->
     <insert id="insertFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
-        insert into file(md5_val, storage_path, f_name, upload_date, f_size, preview_url)
-        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size}, #{preview_url})
+        insert into file(md5_val, storage_path, f_name, upload_date, f_size, preview_url, public_file)
+        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size}, #{preview_url}, #{public_file})
     </insert>
-
-    <!--  插入公共文件  -->
-    <insert id="insertPublicFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
-        insert into file(md5_val, storage_path, f_name, upload_date, f_size, public_file, preview_url, f_description, n_name)
-        values(#{md5_val}, #{storage_path}, #{f_name}, #{upload_date}, #{f_size}, 1, #{preview_url}, #{f_description}, #{n_name})
-    </insert>
-
-    <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.CustomFile">
-        select fid, f_name, upload_date, f_size, preview_url, f_description, n_name from file where public_file=1
-        limit #{offset}, #{count}
-    </select>
-
-    <select id="getPublicFile" resultType="com.ncwu.titapan.pojo.CustomFile">
-        select * from file where md5_val=#{md5_val} and public_file=1
-        limit #{offset}, #{count}
-    </select>
-
-    <select id="getPublicFileCount" resultType="int">
-        select count(fid) from file where public_file=1
-    </select>
 
     <update id="updateFile" parameterType="com.ncwu.titapan.pojo.CustomFile">
-        update file set fid=#{fid}, md5_val=#{md5_val}, storage_path=#{storage_path},
+        update file set md5_val=#{md5_val}, storage_path=#{storage_path},
          f_name=#{f_name}, upload_date=#{upload_date}, f_size=#{f_size},
-         public_file=#{public_file}, preview_url=#{preview_url}, f_description=#{f_description},
-         n_name=#{n_name}
+         public_file=#{public_file}, preview_url=#{preview_url} where fid=#{fid}
     </update>
 
 </mapper>

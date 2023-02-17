@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.PublicFileMapper">
+
+    <insert id="insertPublicFile" parameterType="com.ncwu.titapan.pojo.PublicFile">
+        insert into public_file(fid, f_name, n_name, f_description, upload_date, preview_url)
+        VALUES(#{fid}, #{f_name}, #{n_name}, #{f_description}, #{upload_date}, #{preview_url})
+    </insert>
+
+    <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.PublicFile">
+        select * from public_file
+        limit #{offset}, #{count}
+    </select>
+
+    <select id="getPublicFileCount" resultType="int">
+        select count(fid) from public_file
+    </select>
+</mapper>

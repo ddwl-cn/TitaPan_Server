@@ -30,6 +30,7 @@ public class AccountServiceImpl implements AccountService {
                          HttpServletResponse response,
                          User userInfo) {
         User user = userMapper.getUserInfoByUserName(userInfo.getU_name());
+        System.out.println(user);
         if(user != null && user.getU_password().equals(userInfo.getU_password()) && user.getU_state() == 0 && userInfo.getType() == 0){
             // 登录成功 将用户实体放入session中
             request.getSession().setAttribute(Constant.user, user);

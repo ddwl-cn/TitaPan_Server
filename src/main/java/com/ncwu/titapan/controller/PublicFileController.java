@@ -4,6 +4,7 @@ import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.constant.Message;
 import com.ncwu.titapan.mapper.FileChunkMapper;
 import com.ncwu.titapan.mapper.FileMapper;
+import com.ncwu.titapan.mapper.PublicFileMapper;
 import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UploadService;
 import com.ncwu.titapan.utils.DateUtil;
@@ -37,7 +38,10 @@ public class PublicFileController {
     private FileChunkMapper fileChunkMapper;
     @Autowired
     private UploadService uploadService;
+    @Autowired
+    private PublicFileMapper publicFileMapper;
 
+    // 前端请求偏移和页容量 返回对应数据
     @RequestMapping("/getPublicFileList")
     public ResultMessage<Map<String, Object>> getPublicFileList(HttpServletRequest request,
                                                 HttpServletResponse response,
@@ -45,9 +49,9 @@ public class PublicFileController {
         if(ObjectUtils.isEmpty(index) || ObjectUtils.isEmpty(count))
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
-        CustomFile[] publicFiles = fileMapper.getPublicFileList((index-1)*count, count);
+        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count);
 
-        int totalPages = (int) Math.ceil(((double)fileMapper.getPublicFileCount() / (double)count));
+        int totalPages = (int) Math.ceil(((double)publicFileMapper.getPublicFileCount() / (double)count));
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("publicFileList", publicFiles);
@@ -59,29 +63,30 @@ public class PublicFileController {
     }
 
     @RequestMapping("/commonUpload")
-    public ResultMessage<String> commonUpload(HttpServletRequest request,
-                                                  HttpServletResponse response,
-                                                  FileChunk fileChunk){
-        System.out.println(fileChunk);
-        User user = (User)request.getSession().getAttribute(Constant.user);
-        if(fileChunk.getTotal() == 1){
-            uploadService.commonUploadFile(user, null, fileChunk);
-        }
-        else{
+    public ResultMessage<String> commonUpload(HttpServletRequest request, FileChunk fileChunk) {
+        User user = (User) request.getSession().getAttribute(Constant.user);
+
+        try {
+            if (fileChunk.getTotal() == 1) {
+                uploadService.commonUploadFile(user, null, fileChunk);
+                return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
+            }
             FileChunk fChunk = fileChunkMapper.getFileChunkByMD5(fileChunk.getMd5_val());
-            if(fChunk == null){
+            if (fChunk == null) {
                 uploadService.saveChunk(fileChunk);
             }
             int total = fileChunkMapper.getFileChunkNumber(fileChunk.getId());
-            if(total == fileChunk.getTotal()){
+            if (total == fileChunk.getTotal()) {
                 uploadService.mergeFileChunk(user, null, fileChunk);
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
             }
             return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);
+        } catch (Exception e) {
+            // 处理可能出现的异常情况
+            return new ResultMessage<>(Message.ERROR, e.getMessage(), null);
         }
-
-        return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
     }
+
 
     @RequestMapping("/quickUpload")
     public ResultMessage<String> quickUpload(HttpServletRequest request,
@@ -91,10 +96,17 @@ public class PublicFileController {
         try {
             CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
             if(cFile != null) {
+                // 有这个文件 但是并不是公共文件 需要添加文件为公共文件
                 if (!cFile.isPublic_file()) {
                     cFile.setPublic_file(true);
-                    cFile.setN_name(fileChunk.getOriginal_file_name());
-                    cFile.setF_description(fileChunk.getF_description());
+                    PublicFile publicFile = new PublicFile();
+                    publicFile.setFid(cFile.getFid());
+                    publicFile.setF_name(fileChunk.getOriginal_file_name());
+                    publicFile.setN_name(fileChunk.getN_name());
+                    publicFile.setF_size(cFile.getF_size());
+                    publicFile.setF_description(fileChunk.getF_description());
+                    publicFile.setUpload_date(DateUtil.getFormatDate());
+
                     File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
                     fileChunk.getMPreview().transferTo(tFile);
                     String preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
@@ -106,6 +118,13 @@ public class PublicFileController {
                     }
                     cFile.setPreview_url(preview_url);
                     fileMapper.updateFile(cFile);
+
+                    publicFile.setPreview_url(preview_url);
+                    publicFileMapper.insertPublicFile(publicFile);
+                }
+                else{
+                    // 有这个文件且是公共文件说明已经上传过相同文件
+                    return new ResultMessage<>(Message.SUCCESS, Message.fileNameRepetitive, null);
                 }
             }
             else{

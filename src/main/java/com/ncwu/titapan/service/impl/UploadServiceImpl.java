@@ -3,11 +3,9 @@ package com.ncwu.titapan.service.impl;
 import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.mapper.FileChunkMapper;
 import com.ncwu.titapan.mapper.FileMapper;
+import com.ncwu.titapan.mapper.PublicFileMapper;
 import com.ncwu.titapan.mapper.UserFileListMapper;
-import com.ncwu.titapan.pojo.CustomFile;
-import com.ncwu.titapan.pojo.FileChunk;
-import com.ncwu.titapan.pojo.User;
-import com.ncwu.titapan.pojo.UserFileList;
+import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UploadService;
 import com.ncwu.titapan.utils.DateUtil;
 import com.ncwu.titapan.utils.FileUtil;
@@ -36,6 +34,8 @@ public class UploadServiceImpl implements UploadService {
     private UserFileListMapper userFileListMapper;
     @Autowired
     private FileChunkMapper fileChunkMapper;
+    @Autowired
+    private PublicFileMapper publicFileMapper;
 
     /**
      * TODO 预检验文件是否存在
@@ -87,7 +87,6 @@ public class UploadServiceImpl implements UploadService {
     public boolean commonUploadFile(User user, String userPath, FileChunk fileChunk) {
         try {
             CustomFile cFile = new CustomFile();
-            UserFileList ufList = new UserFileList();
             // TODO 插入文件保存并更新数据库
             cFile.setMd5_val(fileChunk.getMd5_val());
             // MD5+后缀作为文件名
@@ -102,12 +101,8 @@ public class UploadServiceImpl implements UploadService {
             fileChunk.getMFile().transferTo(file);
 
             String preview_url = null;
-
-
             if(user.getType() == 1 && fileChunk.isPublic_file()){
                 cFile.setPublic_file(true);
-                cFile.setF_description(fileChunk.getF_description());
-                cFile.setN_name(fileChunk.getOriginal_file_name());
                 if(fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
 
                 File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
@@ -118,15 +113,15 @@ public class UploadServiceImpl implements UploadService {
             else{
                 preview_url = PreviewImageUtil.createPreviewURL(cFile.getStorage_path() + cFile.getF_name(), fileChunk.getSuffix());
             }
-            System.out.println(preview_url);
             cFile.setPreview_url(preview_url);
+            System.out.println(cFile);
             // 插入到file表中
-            if(fileChunk.isPublic_file()) fileMapper.insertPublicFile(cFile);
-            else fileMapper.insertFile(cFile);
+            fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
-            if(user.getType() == 0) {
-                cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
-
+            cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+            if(user.getType() == 0 && !fileChunk.isPublic_file()) {
+                // 用户文件表
+                UserFileList ufList = new UserFileList();
                 ufList.setUid(user.getUid());
                 ufList.setFid(cFile.getFid());
                 ufList.setStorage_path(userPath);
@@ -136,6 +131,19 @@ public class UploadServiceImpl implements UploadService {
                 ufList.setPreview_url(preview_url);
                 // 更新user_file_list
                 userFileListMapper.insertFile(ufList);
+            }
+            else{
+                // 插入公共文件表
+                PublicFile publicFile = new PublicFile();
+                publicFile.setFid(cFile.getFid());
+                publicFile.setF_name(fileChunk.getOriginal_file_name());
+                publicFile.setN_name(fileChunk.getN_name());
+                publicFile.setF_size(cFile.getF_size());
+                publicFile.setF_description(fileChunk.getF_description());
+                publicFile.setUpload_date(DateUtil.getFormatDate());
+                // 插入公共文件
+                publicFile.setPreview_url(preview_url);
+                publicFileMapper.insertPublicFile(publicFile);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -221,8 +229,7 @@ public class UploadServiceImpl implements UploadService {
 
             if (user.getType() == 1 && fileChunk.isPublic_file()) {
                 cFile.setPublic_file(true);
-                cFile.setF_description(fileChunk.getF_description());
-                cFile.setN_name(fileChunk.getOriginal_file_name());
+
                 if (fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
 
                 File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
@@ -234,14 +241,10 @@ public class UploadServiceImpl implements UploadService {
             }
 
             cFile.setPreview_url(preview_url);
-
-
-            if(fileChunk.isPublic_file()) fileMapper.insertPublicFile(cFile);
-            else fileMapper.insertFile(cFile);
-
+            fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
-            if(user.getType() == 0) {
-                cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+            cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
+            if(user.getType() == 0 && !fileChunk.isPublic_file()) {
                 ufList.setUid(user.getUid());
                 ufList.setFid(cFile.getFid());
                 ufList.setStorage_path(userPath);
@@ -252,6 +255,18 @@ public class UploadServiceImpl implements UploadService {
 
                 userFileListMapper.insertFile(ufList);
             }
+            else{
+                PublicFile publicFile = new PublicFile();
+                publicFile.setFid(cFile.getFid());
+                publicFile.setF_name(fileChunk.getOriginal_file_name());
+                publicFile.setN_name(fileChunk.getN_name());
+                publicFile.setF_size(cFile.getF_size());
+                publicFile.setF_description(fileChunk.getF_description());
+                publicFile.setUpload_date(DateUtil.getFormatDate());
+                // 插入公共文件
+                publicFile.setPreview_url(preview_url);
+                publicFileMapper.insertPublicFile(publicFile);
+            }
         }
         catch (Exception e){
             e.printStackTrace();
@@ -259,7 +274,6 @@ public class UploadServiceImpl implements UploadService {
         return true;
 
     }
-
 //    /**
 //     * TODO 此方法用于当上传文件块到一半时但检测到服务端完整文件已经存在的情况 终止上传直接更新user_file_list表
 //     * 好像写多余了
