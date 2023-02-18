@@ -35,14 +35,7 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
     @Autowired
     private TokenMapper tokenMapper;
     // 调用接口前：前端请求需要认证
-    // TODO 文件提取身份验证有问题，描述如下：
-    //    如果在http://127.0.0.1:8081/#/ 下已经登录localstorage已经存储有用户token的情况下
-    //    此时同一浏览器下手动打开新的标签页访问文件提取链接 会出现登录失效的情况。
-    //    经排查发现当前标签下localstorage中并没有存储token，请求携带的token为null于是出现请求被拦截的情况。
-    //    上述情况可能是同源不同路径localstorage数据不共享导致。
-    //    经过测试如果此时继续在当前标签进行登录后，继续手动打开新的标签页访问文件提取链接，却可以正常访问，出乎意料。
-    //    推测有可能是同源的每一个不同路径下的localstorage均各自独立
-    //    因为localstorage中的数据不共享 所以导致同源网站却需要登录两次........
+    // TODO '冷'知识：localhost与127.0.0.1不同源，localhost相当于域名，之前一直没了解过......
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
@@ -88,7 +81,6 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
         if(request.getSession().getAttribute(Constant.user) != null){
             return true;
         }
-        System.out.println("debug-9");
         // 否则
         // 将user加入session
         request.getSession().setAttribute(Constant.user, user);
