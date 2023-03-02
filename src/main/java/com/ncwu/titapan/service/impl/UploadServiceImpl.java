@@ -103,18 +103,19 @@ public class UploadServiceImpl implements UploadService {
             String preview_url = null;
             if(user.getType() == 1 && fileChunk.isPublic_file()){
                 cFile.setPublic_file(true);
-                if(fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
-
-                File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
-                fileChunk.getMPreview().transferTo(tFile);
-                preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
-                tFile.delete();
+                // 如果上传有封面 且大小小于2mb
+                if(fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024 * 2) {
+                    File tFile = new File(Constant.sys_preview_path + FileUtil.getFileName(cFile.getF_name()) + ".jpg");
+                    fileChunk.getMPreview().transferTo(tFile);
+                    preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
+                    tFile.delete();
+                }
+                else return false;
             }
             else{
                 preview_url = PreviewImageUtil.createPreviewURL(cFile.getStorage_path() + cFile.getF_name(), fileChunk.getSuffix());
             }
             cFile.setPreview_url(preview_url);
-            System.out.println(cFile);
             // 插入到file表中
             fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
@@ -201,7 +202,6 @@ public class UploadServiceImpl implements UploadService {
                 filePathList.add(chunk.getStorage_path()
                         + chunk.getTempName());
             }
-            System.out.println(filePathList);
             // 文件合并 并返回保存的路径
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -230,12 +230,14 @@ public class UploadServiceImpl implements UploadService {
             if (user.getType() == 1 && fileChunk.isPublic_file()) {
                 cFile.setPublic_file(true);
 
-                if (fileChunk.getMPreview() == null || fileChunk.getMPreview().getSize() > 1024 * 1024) return false;
+                if (fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024) {
+                    File tFile = new File(Constant.sys_preview_path + FileUtil.getFileName(cFile.getF_name()) + ".jpg");
+                    fileChunk.getMPreview().transferTo(tFile);
+                    preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
+                    tFile.delete();
+                }
+                else return false;
 
-                File tFile = new File(Constant.sys_preview_path + cFile.getF_name());
-                fileChunk.getMPreview().transferTo(tFile);
-                preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
-                tFile.delete();
             } else {
                 preview_url = PreviewImageUtil.createPreviewURL(cFile.getStorage_path() + cFile.getF_name(), fileChunk.getSuffix());
             }

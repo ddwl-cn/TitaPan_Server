@@ -38,9 +38,8 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
     // TODO '冷'知识：localhost与127.0.0.1不同源，localhost相当于域名，之前一直没了解过......
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
         // session有用户信息不需要验证
-        User user = new User();
+        User user;
         // 验证token
         String token = request.getHeader("token");
         // 放行OPTION请求
@@ -55,10 +54,6 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
         // 捕获token无效异常 并返回错误信息
         try {
             verify = TokenUtils.verify(token, Constant.KEY);
-            if(verify == null){
-                response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
-                return false;
-            }
 
             user = userMapper.getUserInfoByUserId(verify.getClaim("uid").asInt());
             if(user == null){
@@ -66,7 +61,6 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
                 return false;
             }
         }catch(Exception e){
-            System.out.println("token失效异常: " + e.getLocalizedMessage());
             e.printStackTrace();
             response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
             return false;
@@ -82,7 +76,7 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
             return true;
         }
         // 否则
-        // 将user加入session
+        // 将user加入session(即用户第一次登录)
         request.getSession().setAttribute(Constant.user, user);
         // 设置用户默认路径
         request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);

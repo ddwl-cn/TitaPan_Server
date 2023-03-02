@@ -8,6 +8,7 @@
     <select id="getUserInfoByUserName" parameterType="String" resultType="com.ncwu.titapan.pojo.User">
         select * from user where u_name=#{u_name}
     </select>
+
     <select id="getUserInfoByUserId" parameterType="int" resultType="com.ncwu.titapan.pojo.User">
         select * from user where uid=#{uid}
     </select>

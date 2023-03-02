@@ -34,6 +34,7 @@ public class TokenUtils {
         // 存放自定义信息
         builder.withClaim("uid", user.getUid())
                 .withClaim("u_name", user.getU_name())
+                .withClaim("info", "201917325-Tita")
                 .withClaim(Constant.userPath, Constant.user_root_path);
 
         return builder.withExpiresAt(instance.getTime())

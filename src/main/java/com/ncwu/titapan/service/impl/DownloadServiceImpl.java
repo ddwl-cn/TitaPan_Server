@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 
 /**
@@ -56,13 +55,10 @@ public class DownloadServiceImpl implements DownloadService {
             response.setHeader("Content-Length", String.valueOf(file.length()));
             // 缓冲区
             byte[] buffer = new byte[1024];
-            FileInputStream fileInputStream = null;
-            BufferedInputStream bufferedInputStream = null;
             // 读取byte数据到 OutputStream 中
-            try{
-                fileInputStream = new FileInputStream(file);
-                bufferedInputStream = new BufferedInputStream(fileInputStream);
-                OutputStream outputStream = response.getOutputStream();
+            try(FileInputStream fileInputStream = new FileInputStream(file);
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+                OutputStream outputStream = response.getOutputStream()){
                 int index = bufferedInputStream.read(buffer);
                 while(index != -1){
                     outputStream.write(buffer, 0, index);
@@ -73,14 +69,6 @@ public class DownloadServiceImpl implements DownloadService {
             catch(IOException e){
                 e.printStackTrace();
                 return false;
-            }
-            finally {
-                try {
-                    if (bufferedInputStream != null) bufferedInputStream.close();
-                    if (fileInputStream != null) fileInputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
             return true;
         }

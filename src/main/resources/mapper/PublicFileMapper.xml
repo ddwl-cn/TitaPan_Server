@@ -6,16 +6,31 @@
 <mapper namespace="com.ncwu.titapan.mapper.PublicFileMapper">
 
     <insert id="insertPublicFile" parameterType="com.ncwu.titapan.pojo.PublicFile">
-        insert into public_file(fid, f_name, n_name, f_description, upload_date, preview_url)
-        VALUES(#{fid}, #{f_name}, #{n_name}, #{f_description}, #{upload_date}, #{preview_url})
+        insert into public_file(fid, f_name, n_name, f_description, upload_date, preview_url, f_size)
+        VALUES(#{fid}, #{f_name}, #{n_name}, #{f_description}, #{upload_date}, #{preview_url}, #{f_size})
     </insert>
 
     <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.PublicFile">
         select * from public_file
+        where n_name like concat('%', #{search}, '%') or f_description like concat('%', #{search}, '%')
         limit #{offset}, #{count}
     </select>
 
-    <select id="getPublicFileCount" resultType="int">
+    <select id="getPublicFileCount" parameterType="String" resultType="int">
         select count(fid) from public_file
+        where n_name like concat('%', #{search}, '%') or f_description like concat('%', #{search}, '%')
+    </select>
+
+    <update id="updatePublicFileInfo" parameterType="com.ncwu.titapan.pojo.PublicFile">
+        update public_file set n_name=#{n_name}, f_description=#{f_description}, upload_date=#{upload_date}, preview_url=#{preview_url}, hot=#{hot}, score=#{score}
+        where fid=#{fid}
+    </update>
+
+    <delete id="deletePublicFile" parameterType="int">
+        delete from public_file where fid=#{fid}
+    </delete>
+
+    <select id="getPublicFileInfoByFid" parameterType="int" resultType="com.ncwu.titapan.pojo.PublicFile">
+        select * from public_file where fid=#{fid}
     </select>
 </mapper>

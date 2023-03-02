@@ -5,6 +5,7 @@ import com.ncwu.titapan.constant.Message;
 import com.ncwu.titapan.mapper.FileChunkMapper;
 import com.ncwu.titapan.mapper.FileMapper;
 import com.ncwu.titapan.mapper.PublicFileMapper;
+import com.ncwu.titapan.mapper.UserFileListMapper;
 import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UploadService;
 import com.ncwu.titapan.utils.DateUtil;
@@ -12,7 +13,9 @@ import com.ncwu.titapan.utils.FileUtil;
 import com.ncwu.titapan.utils.PreviewImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
@@ -20,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,18 +44,23 @@ public class PublicFileController {
     private UploadService uploadService;
     @Autowired
     private PublicFileMapper publicFileMapper;
+    @Autowired
+    private UserFileListMapper userFileListMapper;
 
     // 前端请求偏移和页容量 返回对应数据
     @RequestMapping("/getPublicFileList")
     public ResultMessage<Map<String, Object>> getPublicFileList(HttpServletRequest request,
                                                 HttpServletResponse response,
-                                                int index, int count){
+                                                int index, int count, String search){
         if(ObjectUtils.isEmpty(index) || ObjectUtils.isEmpty(count))
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
-        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count);
+        if(ObjectUtils.isEmpty(search)) search = "";
 
-        int totalPages = (int) Math.ceil(((double)publicFileMapper.getPublicFileCount() / (double)count));
+
+        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count, search);
+
+        int totalPages = (int) Math.ceil(((double)publicFileMapper.getPublicFileCount(search) / (double)count));
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("publicFileList", publicFiles);
@@ -68,7 +77,9 @@ public class PublicFileController {
 
         try {
             if (fileChunk.getTotal() == 1) {
-                uploadService.commonUploadFile(user, null, fileChunk);
+                if(!uploadService.commonUploadFile(user, null, fileChunk)){
+                    return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
+                }
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
             }
             FileChunk fChunk = fileChunkMapper.getFileChunkByMD5(fileChunk.getMd5_val());
@@ -92,7 +103,6 @@ public class PublicFileController {
     public ResultMessage<String> quickUpload(HttpServletRequest request,
                                                   HttpServletResponse response,
                                                   FileChunk fileChunk){
-        System.out.println(fileChunk);
         try {
             CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
             if(cFile != null) {
@@ -155,6 +165,74 @@ public class PublicFileController {
         return new ResultMessage<>(Message.SUCCESS, Message.commonUpload, null);
     }
 
+
+    @RequestMapping("/updatePublicFileInfo")
+    public ResultMessage<String> updatePublicFileInfo(HttpServletRequest request,
+                                                      HttpServletResponse response,
+                                                      PublicFile rowData){
+        try {
+            if (rowData.getPreview_image()!=null) {
+                File tFile = new File(Constant.sys_preview_path + PreviewImageUtil.createRandomName(32) + ".jpg");
+                rowData.getPreview_image().transferTo(tFile);
+                String preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
+                tFile.delete();
+                rowData.setPreview_url(preview_url);
+            }
+            rowData.setUpload_date(DateUtil.getFormatDate());
+            System.out.println(rowData);
+            publicFileMapper.updatePublicFileInfo(rowData);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ResultMessage<>(Message.SUCCESS, Message.updatePublicFileInfoSuccess, null);
+    }
+
+    @RequestMapping("/deletePublicFile")
+    public ResultMessage<String> deletePublicFile(HttpServletRequest request,
+                                                      HttpServletResponse response,
+                                                      int fid){
+        publicFileMapper.deletePublicFile(fid);
+        return new ResultMessage<>(Message.SUCCESS, Message.deletePublicFileSuccess, null);
+    }
+
+    @RequestMapping("/savePublicFile")
+    public ResultMessage<String> savePublicFile(HttpServletRequest request,
+                                                HttpServletResponse response,
+                                                String savePath,
+                                                int fid){
+
+        if(savePath == null || savePath.isBlank() || savePath.isEmpty())
+            return new ResultMessage<String>(Message.ERROR, Message.dataFormatError, null);
+
+        PublicFile publicFileInfo = publicFileMapper.getPublicFileInfoByFid(fid);
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        UserFileList userFileList = userFileListMapper.getUserFileInfo(user.getUid(), publicFileInfo.getF_name(), savePath);
+        if(userFileList!=null)
+            return new ResultMessage<>(Message.WARNING, Message.fileNameRepetitive, null);
+
+        CustomFile cFile = fileMapper.getFileInfoByFid(publicFileInfo.getFid());
+        if(cFile == null)
+            return new ResultMessage<>(Message.ERROR, null, null);
+
+        userFileList = new UserFileList();
+        userFileList.setUid(user.getUid());
+        userFileList.setStorage_path(savePath);
+        userFileList.setFolder(false);
+        userFileList.setFid(publicFileInfo.getFid());
+        userFileList.setF_name(publicFileInfo.getF_name());
+        userFileList.setUpload_date(publicFileInfo.getUpload_date());
+        userFileList.setF_size(publicFileInfo.getF_size());
+        userFileList.setPreview_url(publicFileInfo.getPreview_url());
+
+        userFileListMapper.insertFile(userFileList);
+
+        // 下载次数加一
+        publicFileInfo.setHot(publicFileInfo.getHot()+1);
+        publicFileMapper.updatePublicFileInfo(publicFileInfo);
+
+        return new ResultMessage<>(Message.SUCCESS, null, null);
+    }
 
 
 }

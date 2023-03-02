@@ -57,9 +57,9 @@ public class Constant {
             "/**/*.jpg",                 //jpg图片资源
             "/**/*.png",                 //png图片资源
             "/login",                    //登录请求
-            "/toLogin",                  //登录页面
-            "/toRegistry",               //注册页面
             "/registry",                 //注册路径
+            "/adminLogin",
+            ""
     };
 
     public static final int CRYPTO_SECRET_KEY = 0x99;

@@ -256,6 +256,10 @@ public class FileUtil {
 
     }
 
+    public static String getFileName(String fileFullName){
+        return fileFullName.substring(0, fileFullName.length()-FileUtil.getFileSuffix(fileFullName).length());
+    }
+
     // 删除传入的文件列表
     public static void deleteTempFile(List<String> tempFileList){
         for (String s : tempFileList) {

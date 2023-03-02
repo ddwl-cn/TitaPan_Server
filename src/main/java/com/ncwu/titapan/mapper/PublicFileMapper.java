@@ -2,6 +2,7 @@ package com.ncwu.titapan.mapper;
 
 import com.ncwu.titapan.pojo.PublicFile;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * TODO 类描述
@@ -13,6 +14,10 @@ import org.apache.ibatis.annotations.Mapper;
 public interface PublicFileMapper {
     void insertPublicFile(PublicFile publicFile);
     void deletePublicFile(int fid);
-    PublicFile[] getPublicFileList(int offset, int count);
-    int getPublicFileCount();
+    PublicFile[] getPublicFileList(@Param("offset") int offset,
+                                   @Param("count") int count,
+                                   @Param("search") String search);
+    int getPublicFileCount(String search);
+    void updatePublicFileInfo(PublicFile publicFile);
+    PublicFile getPublicFileInfoByFid(int fid);
 }

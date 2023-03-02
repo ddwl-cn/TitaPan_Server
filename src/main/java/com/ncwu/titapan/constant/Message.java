@@ -68,6 +68,9 @@ public class Message {
 
     public static final String getPublicFileListSuccess = "getPublicFileListSuccess";
 
+    public static final String updatePublicFileInfoSuccess = "updatePublicFileInfoSuccess";
+    public static final String deletePublicFileSuccess = "deletePublicFileSuccess";
+
     // 成功
     public static final int SUCCESS = 200;
     // 异常

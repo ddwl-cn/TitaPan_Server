@@ -3,6 +3,7 @@ package com.ncwu.titapan.pojo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * TODO 类描述
@@ -25,6 +26,8 @@ public class PublicFile {
     int hot;
     // 文件大小
     long f_size;
+    // 前端更新预览图需要
+    MultipartFile preview_image;
     // 文件描述
     String f_description;
     // 上传日期

@@ -222,7 +222,7 @@ public class UserBehaviorController {
 //                if (f_name.endsWith(".mp4"))
 //                    FileUtil.convertMP4EncodeType(src_file, dest_file);
 //                else
-                    Files.copy(src_file.toPath(), dest_file.toPath());
+                Files.copy(src_file.toPath(), dest_file.toPath());
             }
 
         } catch (IOException e) {
