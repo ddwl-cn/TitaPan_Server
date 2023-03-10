@@ -71,6 +71,18 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
             }
             // 剪切需要额外进行删除操作
 
+            if(clipBoard.getType() == 1){
+                userFileListMapper.deleteFile(user.getUid(), userFileList.getF_name(), userFileList.getStorage_path());
+                if(userFileList.isFolder()){
+                    for (UserFileList userFile : userFiles) {
+                        userFileListMapper.deleteFile(user.getUid(), userFile.getF_name(), userFile.getStorage_path());
+                    }
+                    for (UserFileList userFolder : userFolders) {
+                        userFileListMapper.deleteFile(user.getUid(), userFolder.getF_name(), userFolder.getStorage_path());
+                    }
+                }
+            }
+
             if(userFileList.isFolder()){
                 // 把文件存储路径修改
                 for (UserFileList userFile : userFiles) {
