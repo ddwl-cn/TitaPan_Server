@@ -40,6 +40,8 @@ public class Constant {
     // Attribute中的用户当前路径 键
     public static final String userPath = "userPath";
 
+    public static final String clipBoard = "clipBoard";
+
     // token秘钥
     public static final String KEY = "202117325";
 

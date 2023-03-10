@@ -35,7 +35,6 @@ public class AccountServiceImpl implements AccountService {
             request.getSession().setAttribute(Constant.user, user);
             // 添加用户所处路径
             request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);
-            // TODO 更改用户状态、添加token验证
             String token = TokenUtils.getToken(user);
             response.setHeader("token", token);
             // 存token到表中
@@ -55,7 +54,6 @@ public class AccountServiceImpl implements AccountService {
             request.getSession().setAttribute(Constant.user, user);
             // 添加用户所处路径
             request.getSession().setAttribute(Constant.userPath, Constant.user_root_path);
-            // TODO 更改用户状态、添加token验证
             String token = TokenUtils.getToken(user);
             response.setHeader("token", token);
             // 存token到表中

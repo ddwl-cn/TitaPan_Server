@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class PublicFile {
     int fid;
-    // 文件名
+    // 文件名（作为用户保存后的默认文件名称）
     String f_name;
     // 文件别名
     String n_name;

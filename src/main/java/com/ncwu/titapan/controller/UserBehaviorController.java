@@ -5,10 +5,7 @@ import com.ncwu.titapan.constant.Message;
 import com.ncwu.titapan.mapper.FileMapper;
 import com.ncwu.titapan.mapper.ShareLinkMapper;
 import com.ncwu.titapan.mapper.UserFileListMapper;
-import com.ncwu.titapan.pojo.CustomFile;
-import com.ncwu.titapan.pojo.ResultMessage;
-import com.ncwu.titapan.pojo.User;
-import com.ncwu.titapan.pojo.UserFileList;
+import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UserBehaviorService;
 import com.ncwu.titapan.utils.DateUtil;
 import com.ncwu.titapan.utils.FileUtil;
@@ -23,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sound.sampled.Clip;
 import java.io.*;
 import java.nio.file.Files;
 
@@ -232,6 +230,50 @@ public class UserBehaviorController {
 
         return new ResultMessage<>(Message.SUCCESS, "", randomName);
     }
+
+
+
+    @RequestMapping("/copy")
+    public ResultMessage<String> copy(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      String f_name){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        String userPath = (String)request.getSession().getAttribute(Constant.userPath);
+
+        UserFileList userFileList = userFileListMapper.getUserFileInfo(user.getUid(), f_name, userPath);
+        ClipBoard clipBoard = new ClipBoard(0, userFileList);
+        // 文件信息存入粘贴板
+        request.getSession().setAttribute(Constant.clipBoard, clipBoard);
+
+        return new ResultMessage<>(Message.SUCCESS, Message.copyFileSuccess, null);
+    }
+
+
+    @RequestMapping("/cut")
+    public ResultMessage<String> cut(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      String f_name){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        String userPath = (String)request.getSession().getAttribute(Constant.userPath);
+
+        UserFileList userFileList = userFileListMapper.getUserFileInfo(user.getUid(), f_name, userPath);
+        ClipBoard clipBoard = new ClipBoard(1, userFileList);
+        // 文件信息存入粘贴板
+        request.getSession().setAttribute(Constant.clipBoard, clipBoard);
+
+        return new ResultMessage<>(Message.SUCCESS, Message.cutFileSuccess, null);
+    }
+
+    @RequestMapping("/paste")
+    public ResultMessage<String> copyTo(HttpServletRequest request,
+                                     HttpServletResponse response){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        String userPath = (String)request.getSession().getAttribute(Constant.userPath);
+
+        ClipBoard clipBoard = (ClipBoard)request.getSession().getAttribute(Constant.clipBoard);
+        return userBehaviorService.paste(user, userPath, clipBoard);
+    }
+
 
     @RequestMapping("/resetUserPath")
     public void resetUserPath(HttpServletRequest request){

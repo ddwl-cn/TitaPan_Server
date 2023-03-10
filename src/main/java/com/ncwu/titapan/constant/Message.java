@@ -70,6 +70,10 @@ public class Message {
 
     public static final String updatePublicFileInfoSuccess = "updatePublicFileInfoSuccess";
     public static final String deletePublicFileSuccess = "deletePublicFileSuccess";
+    public static final String copyFileSuccess = "copyFileSuccess";
+    public static final String cutFileSuccess = "cutFileSuccess";
+    public static final String pasteFileSuccess = "pasteFileSuccess";
+    public static final String pasteRecursive = "pasteRecursive";
 
     // 成功
     public static final int SUCCESS = 200;

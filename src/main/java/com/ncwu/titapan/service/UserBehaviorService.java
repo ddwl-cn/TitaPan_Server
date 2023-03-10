@@ -1,5 +1,7 @@
 package com.ncwu.titapan.service;
 
+import com.ncwu.titapan.pojo.ClipBoard;
+import com.ncwu.titapan.pojo.ResultMessage;
 import com.ncwu.titapan.pojo.User;
 
 /**
@@ -11,5 +13,7 @@ import com.ncwu.titapan.pojo.User;
 public interface UserBehaviorService {
 
     void createFolder(User user, String userPath, String folderName);
+
+    ResultMessage<String> paste(User user, String userPath, ClipBoard clipBoard);
 
 }

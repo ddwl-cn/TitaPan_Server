@@ -75,8 +75,6 @@ public class ShareLinkController {
     public ResultMessage<ShareLink[]> getShareList(HttpServletRequest request,
                                                  HttpServletResponse response){
         User user = (User) request.getSession().getAttribute(Constant.user);
-        // 用户当前路径
-        String userPath = (String) request.getSession().getAttribute(Constant.userPath);
 
         ShareLink[] shareLinks = shareLinkMapper.getShareList(user.getUid());
         if(shareLinks == null) return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
