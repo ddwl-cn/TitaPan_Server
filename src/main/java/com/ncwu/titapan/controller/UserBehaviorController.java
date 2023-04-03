@@ -51,7 +51,7 @@ public class UserBehaviorController {
 
         UserFileList[] userFiles = userFileListMapper.getUserFileList(user.getUid(), userPath);
 
-        if(userFiles == null) new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
+        if(userFiles == null) return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
         return new ResultMessage<>(Message.SUCCESS, Message.getUserFileListSuccess, userFiles);
     }

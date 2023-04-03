@@ -7,6 +7,8 @@ spring:
   mvc:
     static-path-pattern: /static/** # 解决 thymeleaf 静态资源访问失败的问题
   datasource:
+#    username: tita_pan
+#    password: RwGiECJ7M3KkEi2a
     username: root
     password: 123456
     url: jdbc:mysql://127.0.0.1:3306/tita_pan?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT&allowMultiQueries=true

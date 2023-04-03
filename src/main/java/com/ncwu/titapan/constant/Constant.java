@@ -16,6 +16,7 @@ public class Constant {
 
     // 系统预览文件存储路径(TODO: 部署后需要进行更改)
     public static final String sys_preview_path = "D:/mySource/KK_Preview/file-online-preview-v4.1.0/server/src/main/file/";
+    //  static final String sys_preview_path = System.getProperty("user.dir").replace('\\','/').replace("TitaPan_Server","file-online-preview") + "/server/src/main/file/";
     // 文件广场文件存储路径
     public static final String sys_public_file_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/public/";
     // 压缩文件临时路径
@@ -23,8 +24,11 @@ public class Constant {
     // 预览图临时路径
 
     public static final String preview_image_path = "D:\\mySource\\KK_Preview\\file-online-preview-v4.1.0\\server\\src\\main\\file\\";
+    // 服务器上使用相对路径
+    // public static final String preview_image_path = System.getProperty("user.dir").replace('\\','/').replace("TitaPan_Server","file-online-preview") + "/server/src/main/file/";
     // 预览图片地址
     public static final String host_url = "http://127.0.0.1:8012/";
+    // public static final String host_url = "http://120.48.54.164:8012/";
     // 用户默认虚拟根路径
     public static final String user_root_path = "/";
 
