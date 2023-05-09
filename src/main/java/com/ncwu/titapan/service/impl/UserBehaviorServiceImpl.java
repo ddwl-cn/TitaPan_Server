@@ -1,16 +1,23 @@
 package com.ncwu.titapan.service.impl;
 
+import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.constant.Message;
+import com.ncwu.titapan.mapper.CommentMapper;
 import com.ncwu.titapan.mapper.UserFileListMapper;
+import com.ncwu.titapan.mapper.UserMapper;
 import com.ncwu.titapan.pojo.ClipBoard;
 import com.ncwu.titapan.pojo.ResultMessage;
 import com.ncwu.titapan.pojo.User;
 import com.ncwu.titapan.pojo.UserFileList;
 import com.ncwu.titapan.service.UserBehaviorService;
 import com.ncwu.titapan.utils.DateUtil;
+import com.ncwu.titapan.utils.FileUtil;
+import com.ncwu.titapan.utils.PreviewImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -23,6 +30,12 @@ import java.util.Arrays;
 public class UserBehaviorServiceImpl implements UserBehaviorService {
     @Autowired
     private UserFileListMapper userFileListMapper;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private CommentMapper commentMapper;
 
     /**
      * TODO 在用户当前路径下创建文件夹
@@ -102,5 +115,35 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
             return new ResultMessage<>(Message.SUCCESS, Message.pasteFileSuccess, null);
         }
         return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
+    }
+
+    @Override
+    public void updateUserInfo(User userInfo, User oldInfo){
+        MultipartFile multipartFile = userInfo.getAvatar();
+        try {
+            String old_url = oldInfo.getAvatar_url();
+            String avatar_url = old_url;
+
+            if (multipartFile != null) {
+                File newAvatar = FileUtil.multipartFileToFile(multipartFile);
+                avatar_url = PreviewImageUtil.get_preview_pic_url(newAvatar, true);
+                userInfo.setAvatar_url(avatar_url);
+            }
+
+            userMapper.updateUserInfo(userInfo);
+
+            if (!avatar_url.equals(old_url)) {
+                commentMapper.updateCommentAvatarURL(userInfo.getUid(), avatar_url);
+
+                if (old_url != null) {
+                    String fileName = PreviewImageUtil.getFileNameFromUrl(old_url);
+                    File oldAvatar = new File(Constant.preview_image_path + fileName);
+                    oldAvatar.delete();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

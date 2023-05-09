@@ -31,4 +31,8 @@
         insert into user(u_name, u_password, nike_name) values(#{u_name}, #{u_password}, #{nike_name})
     </insert>
 
+    <update id="updateUserInfo" parameterType="com.ncwu.titapan.pojo.User">
+        update user set nike_name=#{nike_name}, email=#{email}, avatar_url=#{avatar_url}, age=#{age}, area=#{area}, mobilePhoneNumber=#{mobilePhoneNumber}, sex=#{sex}, work=#{work}, hobby=#{hobby}, design=#{design}
+        where uid=#{uid}
+    </update>
 </mapper>

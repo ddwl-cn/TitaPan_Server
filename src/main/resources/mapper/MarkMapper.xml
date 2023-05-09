@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.MarkMapper">
+
+    <insert id="insertMark" parameterType="com.ncwu.titapan.pojo.Mark">
+        insert into mark(uid, fid, score) VALUES (#{uid}, #{fid}, #{score})
+    </insert>
+
+    <select id="getMark" parameterType="int" resultType="com.ncwu.titapan.pojo.Mark">
+        select * from mark where uid=#{uid} and fid=#{fid}
+    </select>
+
+    <select id="getMarkNumber" parameterType="int" resultType="com.ncwu.titapan.pojo.Mark">
+        select * from mark where fid=#{fid}
+    </select>
+
+    <update id="updateMark" parameterType="com.ncwu.titapan.pojo.Mark">
+        update mark set score=#{score} where mid=#{mid}
+    </update>
+
+</mapper>

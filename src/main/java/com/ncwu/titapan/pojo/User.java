@@ -3,6 +3,7 @@ package com.ncwu.titapan.pojo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 
@@ -22,4 +23,14 @@ public class User {
     int u_state;
     String nike_name;
     int type;
+    String email;
+    String avatar_url;
+    int age;
+    String mobilePhoneNumber;
+    String area;
+    String sex;
+    String work;
+    String hobby;
+    String design;
+    MultipartFile avatar;
 }

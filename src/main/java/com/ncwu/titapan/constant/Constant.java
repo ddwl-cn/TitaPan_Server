@@ -16,7 +16,7 @@ public class Constant {
 
     // 系统预览文件存储路径(TODO: 部署后需要进行更改)
     public static final String sys_preview_path = "D:/mySource/KK_Preview/file-online-preview-v4.1.0/server/src/main/file/";
-    //  static final String sys_preview_path = System.getProperty("user.dir").replace('\\','/').replace("TitaPan_Server","file-online-preview") + "/server/src/main/file/";
+    // public static final String sys_preview_path = System.getProperty("user.dir").replace('\\','/').replace("TitaPan_Server","file-online-preview") + "/server/src/main/file/";
     // 文件广场文件存储路径
     public static final String sys_public_file_path = System.getProperty("user.dir").replace('\\','/') + "/src/main/resources/sysFile/public/";
     // 压缩文件临时路径

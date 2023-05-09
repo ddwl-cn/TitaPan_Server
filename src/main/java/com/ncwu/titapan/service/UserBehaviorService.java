@@ -16,4 +16,6 @@ public interface UserBehaviorService {
 
     ResultMessage<String> paste(User user, String userPath, ClipBoard clipBoard);
 
+    void updateUserInfo(User userInfo, User oldInfo);
+
 }

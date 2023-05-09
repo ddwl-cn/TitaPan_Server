@@ -148,6 +148,10 @@ public class PreviewImageUtil {
         return bufferedImage;
     }
 
+    public static String getFileNameFromUrl(String url){
+        return url.substring(url.lastIndexOf('/') + 1);
+    }
+
 
 
     public static void main(String[] args){

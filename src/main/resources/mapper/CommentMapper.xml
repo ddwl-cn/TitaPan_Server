@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.CommentMapper">
+
+    <insert id="insertComment" parameterType="com.ncwu.titapan.pojo.Comment">
+        insert into comment(uid, fid, comment_date, content, reply_to, avatar_url, nike_name, belong_to, reply_nike_name)
+        values (#{uid}, #{fid},#{comment_date},#{content},#{reply_to},#{avatar_url},#{nike_name}, #{belong_to}, #{reply_nike_name})
+    </insert>
+
+    <select id="getComment" parameterType="int" resultType="com.ncwu.titapan.pojo.Comment">
+        select *
+        from comment where fid=#{fid};
+    </select>
+
+    <select id="getCommentByCid" parameterType="int" resultType="com.ncwu.titapan.pojo.Comment">
+        select *
+        from comment where cid=#{cid};
+    </select>
+
+    <update id="updateReplyNumber" parameterType="int">
+        update comment set reply_num=reply_num+1 where cid=#{cid}
+    </update>
+
+    <update id="starComment" parameterType="int">
+        update comment set star=star+1 where cid=#{cid}
+    </update>
+
+    <update id="cancelStarComment" parameterType="int">
+        update comment set star=star-1 where cid=#{cid}
+    </update>
+
+    <update id="updateCommentAvatarURL">
+        update comment set avatar_url=#{avatar_url} where uid=#{uid}
+    </update>
+    <delete id="deleteComment" parameterType="int">
+        delete from comment where cid=#{cid}
+    </delete>
+
+    <select id="getCommentBelongTo" parameterType="int" resultType="com.ncwu.titapan.pojo.Comment">
+        select *
+        from comment where belong_to=#{cid};
+    </select>
+</mapper>

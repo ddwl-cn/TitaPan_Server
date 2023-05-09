@@ -23,9 +23,9 @@ public class SessionConfig {
     @Bean
     DefaultCookieSerializerCustomizer cookieSerializerCustomizer() {
         return cookieSerializer -> {
-            cookieSerializer.setSameSite("Lax");// 设置为lax规范或者strict允许非安全连接（http） 保存cookie
+            cookieSerializer.setSameSite("None");// 设置为lax规范或者strict允许非安全连接（http） 保存cookie
             cookieSerializer.setUseHttpOnlyCookie(true);
-            cookieSerializer.setUseSecureCookie(false); // 此项必须，否则set-cookie会被chrome浏览器阻拦
+            cookieSerializer.setUseSecureCookie(true); // 此项必须，否则set-cookie会被chrome浏览器阻拦
         };
     }
 }

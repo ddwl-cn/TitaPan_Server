@@ -74,6 +74,13 @@ public class Message {
     public static final String cutFileSuccess = "cutFileSuccess";
     public static final String pasteFileSuccess = "pasteFileSuccess";
     public static final String pasteRecursive = "pasteRecursive";
+    public static final String getPublicFileSuccess = "getPublicFileSuccess";
+    public static final String updateUserInfoSuccess = "updateUserInfoSuccess";
+    public static final String commentSuccess = "commentSuccess";
+    public static final String replySuccess = "replySuccess";
+    public static final String getCommentSuccess = "getCommentSuccess";
+    public static final String starSuccess = "starSuccess";
+
 
     // 成功
     public static final int SUCCESS = 200;

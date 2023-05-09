@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.StarMapper">
+    <select id="getUserStars" parameterType="int" resultType="com.ncwu.titapan.pojo.Star">
+        select *
+        from star where uid=#{uid};
+    </select>
+
+    <select id="getUserStar" parameterType="int" resultType="com.ncwu.titapan.pojo.Star">
+        select *
+        from star where uid=#{uid} and cid=#{cid};
+    </select>
+
+    <insert id="insertStar" parameterType="com.ncwu.titapan.pojo.Star">
+        insert into star(uid, cid) values(#{uid}, #{cid})
+    </insert>
+
+    <delete id="cancelStar" parameterType="int">
+        delete from star where uid=#{uid} and cid=#{cid};
+    </delete>
+
+    <delete id="deleteStar" parameterType="int">
+        delete from star where cid=#{cid};
+    </delete>
+</mapper>

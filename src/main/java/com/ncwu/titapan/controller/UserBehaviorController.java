@@ -2,27 +2,24 @@ package com.ncwu.titapan.controller;
 
 import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.constant.Message;
-import com.ncwu.titapan.mapper.FileMapper;
-import com.ncwu.titapan.mapper.ShareLinkMapper;
-import com.ncwu.titapan.mapper.UserFileListMapper;
+import com.ncwu.titapan.mapper.*;
 import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UserBehaviorService;
 import com.ncwu.titapan.utils.DateUtil;
 import com.ncwu.titapan.utils.FileUtil;
 import com.ncwu.titapan.utils.PreviewImageUtil;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sound.sampled.Clip;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO 类描述
@@ -42,6 +39,16 @@ public class UserBehaviorController {
     private ShareLinkMapper shareLinkMapper;
     @Autowired
     private FileMapper fileMapper;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private CommentMapper commentMapper;
+    @Autowired
+    private StarMapper starMapper;
+    @Autowired
+    private MarkMapper markMapper;
+    @Autowired
+    private PublicFileMapper publicFileMapper;
 
 
     @RequestMapping("/getUserFileList")
@@ -50,6 +57,7 @@ public class UserBehaviorController {
         String userPath = (String)request.getSession().getAttribute(Constant.userPath);
 
         UserFileList[] userFiles = userFileListMapper.getUserFileList(user.getUid(), userPath);
+        System.out.println(request.getSession().getId());
 
         if(userFiles == null) return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
@@ -148,7 +156,7 @@ public class UserBehaviorController {
         if(toPath == null || toPath.isBlank() || userFileListMapper.isPathExist(user.getUid(), toPath) == 0)
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
-
+        System.out.println(toPath);
         request.getSession().setAttribute(Constant.userPath, toPath);
 
         return new ResultMessage<>(Message.SUCCESS, Message.changePathSuccess, null);
@@ -313,5 +321,204 @@ public class UserBehaviorController {
         return new ResultMessage<>(Message.SUCCESS, "", null);
     }
 
+    @RequestMapping("/updateUserInfo")
+    public ResultMessage<String> updateUserInfo(HttpServletRequest request,
+                                                HttpServletResponse response,
+                                                User userInfo){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        User oldInfo = userMapper.getUserInfoByUserId(user.getUid());
+        userInfo.setUid(user.getUid());
+        userBehaviorService.updateUserInfo(userInfo, oldInfo);
+
+        // 更新session中的信息
+        request.getSession().setAttribute(Constant.user, userMapper.getUserInfoByUserId(user.getUid()));
+
+        return new ResultMessage<>(Message.SUCCESS, Message.updateUserInfoSuccess, null);
+    }
+
+    @RequestMapping("/comment")
+    public ResultMessage<String> comment(HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         Comment comment){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        comment.setUid(user.getUid());
+        comment.setReply_to(-1);
+        comment.setBelong_to(-1);
+        comment.setReply_nike_name("");
+        comment.setNike_name(user.getNike_name());
+        comment.setAvatar_url(user.getAvatar_url());
+        comment.setComment_date(DateUtil.getFormatDate());
+
+        commentMapper.insertComment(comment);
+
+
+        return new ResultMessage<>(Message.SUCCESS, Message.commentSuccess, null);
+    }
+
+    @RequestMapping("/reply")
+    public ResultMessage<String> reply(HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         Comment comment){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        System.out.println(comment);
+        if(comment.getReply_to() > 0) {
+            User reply_user = userMapper.getUserInfoByUserId(comment.getReply_to());
+            comment.setReply_nike_name(reply_user.getNike_name());
+        }
+        comment.setUid(user.getUid());
+        comment.setNike_name(user.getNike_name());
+        comment.setAvatar_url(user.getAvatar_url());
+        comment.setComment_date(DateUtil.getFormatDate());
+
+        commentMapper.insertComment(comment);
+
+        commentMapper.updateReplyNumber(comment.getBelong_to());
+
+        return new ResultMessage<>(Message.SUCCESS, Message.replySuccess, null);
+    }
+
+    @RequestMapping("/getComment")
+    public ResultMessage<List<Comment>> getComment(HttpServletRequest request,
+                                       HttpServletResponse response,
+                                       int fid){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        int uid = user.getUid();
+
+
+        // 获得当前文件的所有评论
+        Comment[] allComments = commentMapper.getComment(fid);
+
+        // 筛选出所有评论
+        List<Comment> comments = Arrays.stream(allComments)
+                .filter(comment -> comment.getBelong_to() == -1)
+                .collect(Collectors.toList());
+
+        // 筛选出所有评论对应的回复
+        comments.forEach(comment -> {
+            comment.setReplies(Arrays.stream(allComments)
+                    .filter(item -> item.getBelong_to() == comment.getCid()).toArray(Comment[]::new));
+        });
+
+        List<Star> stars = Arrays.asList(starMapper.getUserStars(uid));
+        comments.forEach(comment -> {
+            boolean hasStar = stars.stream()
+                    .anyMatch(star -> star.getCid() == comment.getCid());
+            comment.set_star(hasStar);
+
+            Comment[] replies = comment.getReplies();
+            if (replies != null) {
+                Arrays.stream(replies).forEach(reply -> {
+                    boolean hasStarReply = stars.stream()
+                            .anyMatch(star -> star.getCid() == reply.getCid());
+                    reply.set_star(hasStarReply);
+                });
+            }
+        });
+
+        return new ResultMessage<>(Message.SUCCESS, Message.getCommentSuccess, comments);
+    }
+
+    @RequestMapping("/starComment")
+    public ResultMessage<String> starComment(HttpServletRequest request,
+                                             HttpServletResponse response,
+                                             int cid){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        int uid = user.getUid();
+        Star star = starMapper.getUserStar(uid, cid);
+        if(star == null) {
+            star = new Star();
+            star.setCid(cid);
+            star.setUid(uid);
+            // 插入新的点赞和更新点赞数
+            commentMapper.starComment(cid);
+            starMapper.insertStar(star);
+        }
+        else{
+            // 取消点赞和更新点赞数
+            commentMapper.cancelStarComment(cid);
+            starMapper.cancelStar(uid, cid);
+        }
+
+        return new ResultMessage<>(Message.SUCCESS, Message.starSuccess, null);
+    }
+
+    @RequestMapping("/getMark")
+    public ResultMessage<Integer> mark(HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         int fid){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        int uid = user.getUid();
+        Mark mark = markMapper.getMark(uid, fid);
+        int score = mark == null ? 0 : mark.getScore();
+
+        return new ResultMessage<>(Message.SUCCESS, "", score);
+    }
+
+    @RequestMapping("/mark")
+    public ResultMessage<String> mark(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      int fid,
+                                      int score){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        int uid = user.getUid();
+        PublicFile publicFile = publicFileMapper.getPublicFileInfoByFid(fid);
+
+        Mark[] allMark = markMapper.getMarkNumber(fid);
+
+        Mark old_mark = markMapper.getMark(uid, fid);
+
+        if(old_mark == null){
+            old_mark = new Mark();
+            // 第一次评分 直接添加进去
+            old_mark.setFid(fid);
+            old_mark.setUid(uid);
+            markMapper.insertMark(old_mark);
+            old_mark = markMapper.getMark(uid, fid);
+            allMark = markMapper.getMarkNumber(fid);
+        }
+
+        final Mark t =  old_mark;
+        allMark = Arrays.stream(allMark)
+                .peek(m -> m.setScore(m.getMid() == t.getMid() ? score : m.getScore()))
+                .toArray(Mark[]::new);
+
+        old_mark.setScore(score);
+
+        // 计算得到新的平均分
+        float avgScore = (float) Arrays.stream(allMark)
+                .mapToDouble(Mark::getScore)
+                .average()
+                .orElse(0.0);
+        // 设置新的评分
+        publicFile.setScore(avgScore);
+
+        // 更新文件评分和用户评分
+        publicFileMapper.updatePublicFileInfo(publicFile);
+        markMapper.updateMark(old_mark);
+
+        return new ResultMessage<>(Message.SUCCESS, "", null);
+    }
+
+    @RequestMapping("/deleteComment")
+    public ResultMessage<String> deleteComment(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               int cid){
+        User user = (User)request.getSession().getAttribute(Constant.user);
+        int uid = user.getUid();
+
+        Comment comment = commentMapper.getCommentByCid(cid);
+        Comment[] comments = commentMapper.getCommentBelongTo(cid);
+        if(comment != null && comment.getUid() == uid) {
+            starMapper.deleteStar(cid);
+
+            // 删除回复和评论
+            for (Comment comment1 : comments) {
+                commentMapper.deleteComment(comment1.getCid());
+            }
+            commentMapper.deleteComment(cid);
+            return new ResultMessage<>(Message.SUCCESS, "success", null);
+        }
+        return new ResultMessage<>(Message.ERROR, "error", null);
+    }
 
 }

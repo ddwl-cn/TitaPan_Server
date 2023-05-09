@@ -56,7 +56,7 @@ public class DownloadController {
             }
         }
         else{
-            // 下载文件
+            // 下载文件夹
             if(downloadService.downloadFolder(response, user.getUid(), userPath, f_name))
                 return null;
         }

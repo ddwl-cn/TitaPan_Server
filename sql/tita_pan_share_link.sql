@@ -20,3 +20,4 @@ create table share_link
 alter table share_link
     add primary key (share_id);
 
+INSERT INTO tita_pan.share_link (share_id, uid, fid, share_uuid, share_code, share_date, expire_date, valid, isFolder, storage_path, f_name) VALUES (54, 7, 811, '84bbdac6-47b9-4f9e-a648-24f257810afd', '111111', '2023-05-09 20:17', '2123-04-15 20:17', '永久', 0, '/', 'default_avatar.3420d7f1.jpg');

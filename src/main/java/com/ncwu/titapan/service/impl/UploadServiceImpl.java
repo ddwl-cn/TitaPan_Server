@@ -198,10 +198,11 @@ public class UploadServiceImpl implements UploadService {
                     fileChunkMapper.getFileChunkListById(fileChunk.getId());
 
             List<String> filePathList = new ArrayList<>();
-            for (FileChunk chunk : fileChunkList) {
-                filePathList.add(chunk.getStorage_path()
-                        + chunk.getTempName());
-            }
+            fileChunkList.forEach(chunk -> filePathList.add(chunk.getStorage_path() + chunk.getTempName()));
+//            for (FileChunk chunk : fileChunkList) {
+//                filePathList.add(chunk.getStorage_path()
+//                        + chunk.getTempName());
+//            }
             // 文件合并 并返回保存的路径
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();

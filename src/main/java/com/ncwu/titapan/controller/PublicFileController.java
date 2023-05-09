@@ -234,5 +234,14 @@ public class PublicFileController {
         return new ResultMessage<>(Message.SUCCESS, null, null);
     }
 
+    @RequestMapping("/getPublicFileInfo")
+    public ResultMessage<PublicFile> getPublicFileInfo(HttpServletRequest request,
+                                                       HttpServletResponse response,
+                                                       int fid){
+        PublicFile publicFile = publicFileMapper.getPublicFileInfoByFid(fid);
+        if(publicFile == null) return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
+        return new ResultMessage<>(Message.SUCCESS,Message.getPublicFileSuccess, publicFile);
+    }
+
 
 }
