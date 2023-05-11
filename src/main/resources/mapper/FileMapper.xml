@@ -24,4 +24,8 @@
          public_file=#{public_file}, preview_url=#{preview_url} where fid=#{fid}
     </update>
 
+    <delete id="deleteFileByFid">
+        delete from file where fid=#{fid}
+    </delete>
+
 </mapper>

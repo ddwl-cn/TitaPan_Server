@@ -19,4 +19,6 @@ public interface FileMapper {
 
     void updateFile(CustomFile cFile);
 
+    void deleteFileByFid(int fid);
+
 }

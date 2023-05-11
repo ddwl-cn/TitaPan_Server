@@ -2,10 +2,7 @@ package com.ncwu.titapan.controller;
 
 import com.ncwu.titapan.constant.Constant;
 import com.ncwu.titapan.constant.Message;
-import com.ncwu.titapan.mapper.FileChunkMapper;
-import com.ncwu.titapan.mapper.FileMapper;
-import com.ncwu.titapan.mapper.PublicFileMapper;
-import com.ncwu.titapan.mapper.UserFileListMapper;
+import com.ncwu.titapan.mapper.*;
 import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UploadService;
 import com.ncwu.titapan.utils.DateUtil;
@@ -50,15 +47,16 @@ public class PublicFileController {
     // 前端请求偏移和页容量 返回对应数据
     @RequestMapping("/getPublicFileList")
     public ResultMessage<Map<String, Object>> getPublicFileList(HttpServletRequest request,
-                                                HttpServletResponse response,
-                                                int index, int count, String search){
+                                                                HttpServletResponse response,
+                                                                int index, int count, String search){
         if(ObjectUtils.isEmpty(index) || ObjectUtils.isEmpty(count))
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
         if(ObjectUtils.isEmpty(search)) search = "";
 
+        User user = (User) request.getSession().getAttribute(Constant.user);
 
-        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count, search);
+        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count, search, user.getType());
 
         int totalPages = (int) Math.ceil(((double)publicFileMapper.getPublicFileCount(search) / (double)count));
 
@@ -77,7 +75,7 @@ public class PublicFileController {
 
         try {
             if (fileChunk.getTotal() == 1) {
-                if(!uploadService.commonUploadFile(user, null, fileChunk)){
+                if(!uploadService.commonUploadFile(user, null, fileChunk, false, null)){
                     return new ResultMessage<>(Message.ERROR, Message.unknownError, null);
                 }
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
@@ -88,7 +86,7 @@ public class PublicFileController {
             }
             int total = fileChunkMapper.getFileChunkNumber(fileChunk.getId());
             if (total == fileChunk.getTotal()) {
-                uploadService.mergeFileChunk(user, null, fileChunk);
+                uploadService.mergeFileChunk(user, null, fileChunk, false, null);
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
             }
             return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);
@@ -101,8 +99,8 @@ public class PublicFileController {
 
     @RequestMapping("/quickUpload")
     public ResultMessage<String> quickUpload(HttpServletRequest request,
-                                                  HttpServletResponse response,
-                                                  FileChunk fileChunk){
+                                             HttpServletResponse response,
+                                             FileChunk fileChunk){
         try {
             CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
             if(cFile != null) {
@@ -150,8 +148,8 @@ public class PublicFileController {
 
     @RequestMapping("/checkFile")
     public ResultMessage<String> checkPublicFile(HttpServletRequest request,
-                                                  HttpServletResponse response,
-                                                  FileChunk fileChunk){
+                                                 HttpServletResponse response,
+                                                 FileChunk fileChunk){
         CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
         if(cFile != null) {
             return new ResultMessage<>(Message.SUCCESS, Message.quickUpload, null);
@@ -190,8 +188,8 @@ public class PublicFileController {
 
     @RequestMapping("/deletePublicFile")
     public ResultMessage<String> deletePublicFile(HttpServletRequest request,
-                                                      HttpServletResponse response,
-                                                      int fid){
+                                                  HttpServletResponse response,
+                                                  int fid){
         publicFileMapper.deletePublicFile(fid);
         return new ResultMessage<>(Message.SUCCESS, Message.deletePublicFileSuccess, null);
     }

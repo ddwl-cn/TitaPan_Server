@@ -16,7 +16,8 @@ public interface PublicFileMapper {
     void deletePublicFile(int fid);
     PublicFile[] getPublicFileList(@Param("offset") int offset,
                                    @Param("count") int count,
-                                   @Param("search") String search);
+                                   @Param("search") String search,
+                                   @Param("type") int type);
     int getPublicFileCount(String search);
     void updatePublicFileInfo(PublicFile publicFile);
     PublicFile getPublicFileInfoByFid(int fid);

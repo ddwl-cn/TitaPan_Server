@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ncwu.titapan.mapper.PublicFileTaskMapper">
+
+    <insert id="insertTask" parameterType="com.ncwu.titapan.pojo.PublicFileTask">
+        insert into public_file_task(uid, remark, suggestion, fid)
+        VALUES (#{uid}, #{remark}, #{suggestion}, #{fid})
+    </insert>
+
+    <update id="updateTask" parameterType="com.ncwu.titapan.pojo.PublicFileTask">
+        update public_file_task set state=#{state}, suggestion=#{suggestion} where tid=#{tid}
+    </update>
+
+    <delete id="deleteTask" parameterType="int">
+        delete from public_file_task where tid=#{tid} and uid=#{uid}
+    </delete>
+
+    <delete id="deleteTaskByTid" parameterType="int">
+        delete from public_file_task where tid=#{tid}
+    </delete>
+
+    <select id="getTaskById" parameterType="int" resultType="com.ncwu.titapan.pojo.PublicFileTask">
+        select * from public_file_task where tid=#{tid}
+    </select>
+
+    <select id="getAllTasks" resultType="com.ncwu.titapan.pojo.PublicFileTask">
+        select * from public_file_task
+    </select>
+
+    <select id="getTaskByUid" parameterType="int" resultType="com.ncwu.titapan.pojo.PublicFileTask">
+        select * from public_file_task where uid=#{uid}
+    </select>
+
+</mapper>

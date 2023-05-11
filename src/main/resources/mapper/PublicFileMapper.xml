@@ -6,13 +6,14 @@
 <mapper namespace="com.ncwu.titapan.mapper.PublicFileMapper">
 
     <insert id="insertPublicFile" parameterType="com.ncwu.titapan.pojo.PublicFile">
-        insert into public_file(fid, f_name, n_name, f_description, upload_date, preview_url, f_size)
-        VALUES(#{fid}, #{f_name}, #{n_name}, #{f_description}, #{upload_date}, #{preview_url}, #{f_size})
+        insert into public_file(fid, f_name, n_name, f_description, upload_date, preview_url, f_size, state, visible)
+        VALUES(#{fid}, #{f_name}, #{n_name}, #{f_description}, #{upload_date}, #{preview_url}, #{f_size}, #{state}, #{visible})
     </insert>
 
     <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.PublicFile">
         select * from public_file
-        where n_name like concat('%', #{search}, '%') or f_description like concat('%', #{search}, '%')
+        where (n_name like concat('%', #{search}, '%') or f_description like concat('%', #{search}, '%'))
+        and (visible=true or #{type}=1) and state=0
         limit #{offset}, #{count}
     </select>
 
@@ -22,7 +23,7 @@
     </select>
 
     <update id="updatePublicFileInfo" parameterType="com.ncwu.titapan.pojo.PublicFile">
-        update public_file set n_name=#{n_name}, f_description=#{f_description}, upload_date=#{upload_date}, preview_url=#{preview_url}, hot=#{hot}, score=#{score}
+        update public_file set n_name=#{n_name}, f_description=#{f_description}, upload_date=#{upload_date}, preview_url=#{preview_url}, hot=#{hot}, score=#{score}, visible=#{visible}, state=#{state}
         where fid=#{fid}
     </update>
 

@@ -96,7 +96,7 @@ public class UploadController {
             // 检验文件是否存在
             CustomFile cFile = fileMapper.getFileInfoByMD5(fileChunk.getId());
             if (cFile == null) {
-                uploadService.commonUploadFile(user, userPath, fileChunk);
+                uploadService.commonUploadFile(user, userPath, fileChunk, false, null);
             } else {
                 uploadService.quickUploadFile(user, userPath, fileChunk.getId(), fileChunk.getOriginal_file_name());
             }
@@ -112,7 +112,7 @@ public class UploadController {
                 // 如果数据库中已经有所有的分块
                 if (fileChunkMapper.getFileChunkNumber(fileChunk.getId()) == fileChunk.getTotal()) {
                     // 合并分块
-                    uploadService.mergeFileChunk(user, userPath, fileChunk);
+                    uploadService.mergeFileChunk(user, userPath, fileChunk, false, null);
                     return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
                 }
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);
@@ -162,7 +162,7 @@ public class UploadController {
 
                 if (fileChunkMapper.getFileChunkNumber(fileChunk.getId()) == fileChunk.getTotal()) {
                     // 合并分块
-                    uploadService.mergeFileChunk(user, userPath, fileChunk);
+                    uploadService.mergeFileChunk(user, userPath, fileChunk, false, null);
                     return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
                 }
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);
@@ -189,7 +189,7 @@ public class UploadController {
         if (cFile == null) {
             // 整个文件是一个分块
             if (fileChunk.getTotal() == 1 && fileChunk.getMFile() != null && fileChunk.getMFile().getSize() > 0) {
-                uploadService.commonUploadFile(user, userPath, fileChunk);
+                uploadService.commonUploadFile(user, userPath, fileChunk, false, null);
             }
             // 多个分块的文件
             else {
@@ -201,7 +201,7 @@ public class UploadController {
                 // 如果数据库中已经有所有的分块
                 if (fileChunkMapper.getFileChunkNumber(fileChunk.getId()) == fileChunk.getTotal()) {
                     // 合并分块
-                    uploadService.mergeFileChunk(user, userPath, fileChunk);
+                    uploadService.mergeFileChunk(user, userPath, fileChunk, false, null);
                     return new ResultMessage<>(Message.SUCCESS, Message.uploadComplete, null);
                 }
                 return new ResultMessage<>(Message.SUCCESS, Message.uploadChunkComplete, null);

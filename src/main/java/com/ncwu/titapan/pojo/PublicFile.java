@@ -34,4 +34,7 @@ public class PublicFile {
     String upload_date;
     // 封面缩略图
     String preview_url;
+    // 用来标记是否是用户的公共文件上传任务 0为正常 1为未审核通过不能被其他用户看见
+    boolean state;
+    boolean visible;
 }

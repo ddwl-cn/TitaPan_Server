@@ -1,10 +1,7 @@
 package com.ncwu.titapan.service.impl;
 
 import com.ncwu.titapan.constant.Constant;
-import com.ncwu.titapan.mapper.FileChunkMapper;
-import com.ncwu.titapan.mapper.FileMapper;
-import com.ncwu.titapan.mapper.PublicFileMapper;
-import com.ncwu.titapan.mapper.UserFileListMapper;
+import com.ncwu.titapan.mapper.*;
 import com.ncwu.titapan.pojo.*;
 import com.ncwu.titapan.service.UploadService;
 import com.ncwu.titapan.utils.DateUtil;
@@ -36,6 +33,8 @@ public class UploadServiceImpl implements UploadService {
     private FileChunkMapper fileChunkMapper;
     @Autowired
     private PublicFileMapper publicFileMapper;
+    @Autowired
+    private PublicFileTaskMapper publicFileTaskMapper;
 
     /**
      * TODO 预检验文件是否存在
@@ -84,7 +83,7 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 8:56
     **/
     @Override
-    public boolean commonUploadFile(User user, String userPath, FileChunk fileChunk) {
+    public boolean commonUploadFile(User user, String userPath, FileChunk fileChunk, boolean isTask, PublicFileTask publicFileTask) {
         try {
             CustomFile cFile = new CustomFile();
             // TODO 插入文件保存并更新数据库
@@ -101,7 +100,7 @@ public class UploadServiceImpl implements UploadService {
             fileChunk.getMFile().transferTo(file);
 
             String preview_url = null;
-            if(user.getType() == 1 && fileChunk.isPublic_file()){
+            if((user.getType() == 1 && fileChunk.isPublic_file()) || isTask){
                 cFile.setPublic_file(true);
                 // 如果上传有封面 且大小小于2mb
                 if(fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024 * 2) {
@@ -120,7 +119,7 @@ public class UploadServiceImpl implements UploadService {
             fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
             cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
-            if(user.getType() == 0 && !fileChunk.isPublic_file()) {
+            if(user.getType() == 0 && !fileChunk.isPublic_file() && !isTask) {
                 // 用户文件表
                 UserFileList ufList = new UserFileList();
                 ufList.setUid(user.getUid());
@@ -142,6 +141,16 @@ public class UploadServiceImpl implements UploadService {
                 publicFile.setF_size(cFile.getF_size());
                 publicFile.setF_description(fileChunk.getF_description());
                 publicFile.setUpload_date(DateUtil.getFormatDate());
+                publicFile.setVisible(true);
+                if(isTask) {
+                    publicFile.setState(true);
+                    publicFile.setVisible(false);
+                    // 上传完成后生成 任务
+                    publicFileTask.setUid(user.getUid());
+                    publicFileTask.setState(0);
+                    publicFileTask.setFid(cFile.getFid());
+                    publicFileTaskMapper.insertTask(publicFileTask);
+                }
                 // 插入公共文件
                 publicFile.setPreview_url(preview_url);
                 publicFileMapper.insertPublicFile(publicFile);
@@ -191,7 +200,7 @@ public class UploadServiceImpl implements UploadService {
      * @Date 2023/1/6 16:39
     **/
     @Override
-    public boolean mergeFileChunk(User user, String userPath, FileChunk fileChunk) {
+    public boolean mergeFileChunk(User user, String userPath, FileChunk fileChunk, boolean isTask, PublicFileTask publicFileTask) {
         try {
             // 查询文件所有的分块
             List<FileChunk> fileChunkList =
@@ -199,10 +208,7 @@ public class UploadServiceImpl implements UploadService {
 
             List<String> filePathList = new ArrayList<>();
             fileChunkList.forEach(chunk -> filePathList.add(chunk.getStorage_path() + chunk.getTempName()));
-//            for (FileChunk chunk : fileChunkList) {
-//                filePathList.add(chunk.getStorage_path()
-//                        + chunk.getTempName());
-//            }
+
             // 文件合并 并返回保存的路径
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -228,7 +234,7 @@ public class UploadServiceImpl implements UploadService {
 
             String preview_url = null;
 
-            if (user.getType() == 1 && fileChunk.isPublic_file()) {
+            if ((user.getType() == 1 && fileChunk.isPublic_file()) || isTask) {
                 cFile.setPublic_file(true);
 
                 if (fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024) {
@@ -247,7 +253,8 @@ public class UploadServiceImpl implements UploadService {
             fileMapper.insertFile(cFile);
             // 插入后在查询file中的id
             cFile = fileMapper.getFileInfoByMD5(cFile.getMd5_val());
-            if(user.getType() == 0 && !fileChunk.isPublic_file()) {
+            // 如果是普通用户且不是公共文件且不是公共文件上传任务 只修改用户文件列表
+            if(user.getType() == 0 && !fileChunk.isPublic_file() && !isTask) {
                 ufList.setUid(user.getUid());
                 ufList.setFid(cFile.getFid());
                 ufList.setStorage_path(userPath);
@@ -266,6 +273,16 @@ public class UploadServiceImpl implements UploadService {
                 publicFile.setF_size(cFile.getF_size());
                 publicFile.setF_description(fileChunk.getF_description());
                 publicFile.setUpload_date(DateUtil.getFormatDate());
+                publicFile.setVisible(true);
+                if(isTask) {
+                    publicFile.setState(true);
+                    publicFile.setVisible(false);
+                    // 上传完成后生成 任务
+                    publicFileTask.setUid(user.getUid());
+                    publicFileTask.setState(0);
+                    publicFileTask.setFid(cFile.getFid());
+                    publicFileTaskMapper.insertTask(publicFileTask);
+                }
                 // 插入公共文件
                 publicFile.setPreview_url(preview_url);
                 publicFileMapper.insertPublicFile(publicFile);
