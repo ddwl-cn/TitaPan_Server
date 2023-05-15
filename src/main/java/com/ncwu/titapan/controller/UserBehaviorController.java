@@ -57,7 +57,7 @@ public class UserBehaviorController {
         String userPath = (String)request.getSession().getAttribute(Constant.userPath);
 
         UserFileList[] userFiles = userFileListMapper.getUserFileList(user.getUid(), userPath);
-        System.out.println(request.getSession().getId());
+
 
         if(userFiles == null) return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
@@ -156,7 +156,6 @@ public class UserBehaviorController {
         if(toPath == null || toPath.isBlank() || userFileListMapper.isPathExist(user.getUid(), toPath) == 0)
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
-        System.out.println(toPath);
         request.getSession().setAttribute(Constant.userPath, toPath);
 
         return new ResultMessage<>(Message.SUCCESS, Message.changePathSuccess, null);
@@ -360,7 +359,7 @@ public class UserBehaviorController {
                                          HttpServletResponse response,
                                          Comment comment){
         User user = (User)request.getSession().getAttribute(Constant.user);
-        System.out.println(comment);
+
         if(comment.getReply_to() > 0) {
             User reply_user = userMapper.getUserInfoByUserId(comment.getReply_to());
             comment.setReply_nike_name(reply_user.getNike_name());

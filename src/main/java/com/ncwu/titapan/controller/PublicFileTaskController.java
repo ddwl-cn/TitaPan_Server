@@ -208,7 +208,6 @@ public class PublicFileTaskController {
     @RequestMapping("/updateTask")
     public ResultMessage<String> updateTask(HttpServletRequest request,
                                             PublicFileTask publicFileTask){
-        System.out.println(publicFileTask);
         User user = (User)request.getSession().getAttribute(Constant.user);
         if(user.getType() == 0) return new ResultMessage<>(Message.ERROR, null, null);
         // 查询公共文件表

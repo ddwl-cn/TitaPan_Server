@@ -48,15 +48,16 @@ public class PublicFileController {
     @RequestMapping("/getPublicFileList")
     public ResultMessage<Map<String, Object>> getPublicFileList(HttpServletRequest request,
                                                                 HttpServletResponse response,
-                                                                int index, int count, String search){
+                                                                int index, int count, String search, int orderBy, String col){
         if(ObjectUtils.isEmpty(index) || ObjectUtils.isEmpty(count))
             return new ResultMessage<>(Message.ERROR, Message.dataFormatError, null);
 
         if(ObjectUtils.isEmpty(search)) search = "";
 
+        // 0 默认
         User user = (User) request.getSession().getAttribute(Constant.user);
 
-        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count, search, user.getType());
+        PublicFile[] publicFiles = publicFileMapper.getPublicFileList((index-1)*count, count, search, user.getType(), orderBy, col);
 
         int totalPages = (int) Math.ceil(((double)publicFileMapper.getPublicFileCount(search) / (double)count));
 
@@ -177,7 +178,6 @@ public class PublicFileController {
                 rowData.setPreview_url(preview_url);
             }
             rowData.setUpload_date(DateUtil.getFormatDate());
-            System.out.println(rowData);
             publicFileMapper.updatePublicFileInfo(rowData);
         }
         catch (Exception e){

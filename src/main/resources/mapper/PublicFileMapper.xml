@@ -11,11 +11,20 @@
     </insert>
 
     <select id="getPublicFileList" resultType="com.ncwu.titapan.pojo.PublicFile">
-        select * from public_file
-        where (n_name like concat('%', #{search}, '%') or f_description like concat('%', #{search}, '%'))
-        and (visible=true or #{type}=1) and state=0
-        limit #{offset}, #{count}
+        SELECT * FROM (
+                        SELECT * FROM public_file
+                        WHERE (n_name LIKE CONCAT('%', #{search}, '%') OR f_description LIKE CONCAT('%', #{search}, '%'))
+                        AND (visible = TRUE OR #{type} = 1) AND state = 0
+                        <if test="orderBy == 1">
+                            order by ${col} ASC
+                        </if>
+                        <if test="orderBy == 2">
+                            order by ${col} DESC
+                        </if>
+                      ) AS sorted_files
+        LIMIT #{count} OFFSET #{offset}
     </select>
+
 
     <select id="getPublicFileCount" parameterType="String" resultType="int">
         select count(fid) from public_file
