@@ -7,6 +7,7 @@ import org.springframework.session.MapSessionRepository;
 import org.springframework.session.SessionRepository;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
 
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
@@ -23,9 +24,13 @@ public class SessionConfig {
     @Bean
     DefaultCookieSerializerCustomizer cookieSerializerCustomizer() {
         return cookieSerializer -> {
-            cookieSerializer.setSameSite("None");// 设置为lax规范或者strict允许非安全连接（http） 保存cookie
+            cookieSerializer.setSameSite(isLinux() ? "Lax" : "None");// 设置为lax规范或者strict允许非安全连接（http） 保存cookie
             cookieSerializer.setUseHttpOnlyCookie(true);
-            cookieSerializer.setUseSecureCookie(true); // 此项必须，否则set-cookie会被chrome浏览器阻拦
+            cookieSerializer.setUseSecureCookie(!isLinux()); // 此项必须，否则set-cookie会被chrome浏览器阻拦
         };
+    }
+
+    private boolean isLinux(){
+        return System.getProperty("os.name").toLowerCase().contains("linux");
     }
 }

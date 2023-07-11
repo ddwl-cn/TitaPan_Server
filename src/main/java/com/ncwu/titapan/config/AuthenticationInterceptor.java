@@ -20,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -47,7 +48,8 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
             return true;
         }
         else if(token == null || token.isBlank()){
-            response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+            // response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+            setReturn(request, response);
             return false;
         }
         DecodedJWT verify;
@@ -57,12 +59,14 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
 
             user = userMapper.getUserInfoByUserId(verify.getClaim("uid").asInt());
             if(user == null){
-                response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+                // response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+                setReturn(request, response);
                 return false;
             }
         }catch(Exception e){
             e.printStackTrace();
-            response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+            // response.setHeader("Data", JSONObject.toJSONString(new ResultMessage<String>(Message.WARNING, Message.invalidToken, null)));
+            setReturn(request, response);
             return false;
         }
         Token userToken = tokenMapper.getUserToken(user.getUid(), token);
@@ -98,5 +102,17 @@ public class AuthenticationInterceptor  implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         // System.out.println("afterCompletion:" + new Date().getTime());
         HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
+    }
+
+
+    //返回错误信息
+    private static void setReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        //UTF-8编码
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=utf-8");
+        String json = JSONObject.toJSONString(new ResultMessage<>(Message.WARNING, Message.invalidToken, null));
+        response.getWriter().print(json);
     }
 }

@@ -127,6 +127,8 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
             if (multipartFile != null) {
                 File newAvatar = FileUtil.multipartFileToFile(multipartFile);
                 avatar_url = PreviewImageUtil.get_preview_pic_url(newAvatar, true);
+                // 临时生成后删除
+                newAvatar.delete();
                 userInfo.setAvatar_url(avatar_url);
             }
 

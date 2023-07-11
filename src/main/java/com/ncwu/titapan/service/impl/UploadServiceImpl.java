@@ -103,7 +103,7 @@ public class UploadServiceImpl implements UploadService {
             if((user.getType() == 1 && fileChunk.isPublic_file()) || isTask){
                 cFile.setPublic_file(true);
                 // 如果上传有封面 且大小小于2mb
-                if(fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024 * 2) {
+                if(fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024 * 5) {
                     File tFile = new File(Constant.sys_preview_path + FileUtil.getFileName(cFile.getF_name()) + ".jpg");
                     fileChunk.getMPreview().transferTo(tFile);
                     preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
@@ -237,7 +237,7 @@ public class UploadServiceImpl implements UploadService {
             if ((user.getType() == 1 && fileChunk.isPublic_file()) || isTask) {
                 cFile.setPublic_file(true);
 
-                if (fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024) {
+                if (fileChunk.getMPreview() != null && fileChunk.getMPreview().getSize() < 1024 * 1024 * 5) {
                     File tFile = new File(Constant.sys_preview_path + FileUtil.getFileName(cFile.getF_name()) + ".jpg");
                     fileChunk.getMPreview().transferTo(tFile);
                     preview_url = PreviewImageUtil.get_preview_pic_url(tFile, true);
